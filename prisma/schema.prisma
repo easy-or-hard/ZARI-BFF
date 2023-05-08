@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  BYEOL
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Zodiac {
+  id            Int   @id @default(autoincrement())
+  symbol        String   @unique
+  startMonthDay String
+  endMonthDay   String
+  zaris         Zari[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model User {
+  id          Int   @id @default(autoincrement())
+  provider    String
+  providerId  Int
+  email       String?
+  role        UserRole @default(USER)
+  byoel       Byeol?   @relation(fields: [byeolId], references: [id])
+  byeolId     Int?
+  json        Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([provider, providerId])
+}
+
+model Byeol {
+  id        Int   @id @default(autoincrement())
+  name      String   @unique
+  users     User[]
+  zaris     Zari[]
+  banzzacks Banzzack[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Zari {
+  id        Int   @id @default(autoincrement())
+  zodiac    Zodiac   @relation(fields: [zodiacId], references: [id])
+  zodiacId  Int
+  byeol     Byeol    @relation(fields: [byeolId], references: [id])
+  byeolId   Int
+  banzzacks Banzzack[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isPublic  Boolean  @default(true)
+}
+
+model Banzzack {
+  id        Int   @id @default(autoincrement())
+  content  String
+  byeol     Byeol    @relation(fields: [byeolId], references: [id])
+  byeolId   Int
+  byeolName String   // 별의 이름이 수정되어도 작성 당시의 이름을 보관.
+  zari      Zari     @relation(fields: [zariId], references: [id])
+  zariId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

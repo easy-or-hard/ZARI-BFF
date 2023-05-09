@@ -3,6 +3,7 @@ import { GithubStrategy } from './strategy/github.strategy';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -12,38 +13,13 @@ export class AuthService {
     private readonly userService: UserService,
   ) {}
 
-  async jwtSign(user: any) {
-    const payload = {
-      id: user.id,
-      byeolId: user.byeolId,
-      providerId: user.providerId,
-      provider: user.provider,
-      role: user.role,
-    };
+  async jwtSign(user: User) {
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: this.jwtService.sign(user),
     };
   }
 
-  async authenticateUserWithoutSignUp(createUserDto: CreateUserDto) {
-    let user = await this.userService.findUnique({
-      providerId: createUserDto.providerId,
-      provider: createUserDto.provider,
-    });
-
-    if (!user) {
-      user = await this.userService.create(createUserDto);
-    }
-
-    return user;
-  }
-
-  async signIn(user) {
-    const payload = { id: user.id };
-    return this.jwtService.sign(payload);
-  }
-
-  async signUp(createUserDto: CreateUserDto) {
-    return await this.userService.create(createUserDto);
+  async create(createUserDto: CreateUserDto) {
+    return this.userService.create(createUserDto);
   }
 }

@@ -1,9 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { PickType } from '@nestjs/swagger';
+import { ZariEntity } from '../entities/zari.entity';
 
-export class CreateZariDto {
-  @ApiProperty({ example: 5 })
-  zodiacId: number;
-
-  @ApiProperty({ example: 2 })
-  byeolId: number;
-}
+export class CreateZariDto extends PickType(ZariEntity, [
+  'constellationIAU',
+  'byeolId',
+] as const) {}

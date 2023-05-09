@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ByeolModule } from './core/byeol/byeol.module';
-import { ZodiacModule } from './core/zodiac/zodiac.module';
+import { ConstellationModule } from './core/Constellation/constellationModule';
 import { BanzzackModule } from './core/banzzack/banzzack.module';
 import { ZariModule } from './core/zari/zari.module';
 import { PrismaModule } from 'nestjs-prisma';
@@ -18,11 +18,11 @@ import { ConfigModule } from '@nestjs/config';
       isGlobal: true,
     }),
     AuthModule,
-    ByeolModule,
-    ZodiacModule,
-    BanzzackModule,
-    ZariModule,
     UserModule,
+    ConstellationModule,
+    ByeolModule,
+    ZariModule,
+    BanzzackModule,
   ],
   controllers: [],
   providers: [],

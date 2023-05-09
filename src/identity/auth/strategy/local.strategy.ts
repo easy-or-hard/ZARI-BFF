@@ -17,11 +17,9 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(providerId: number, provider: string): Promise<any> {
-    const user = await this.userService.findUniqueOrThrow({
+    return await this.userService.findUniqueProviderIdsOrThrow({
       providerId,
       provider,
     });
-
-    return user;
   }
 }

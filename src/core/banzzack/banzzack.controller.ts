@@ -1,42 +1,85 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
-  Patch,
+  UseGuards,
+  Req,
+  ParseIntPipe,
   Param,
   Delete,
+  Get,
+  Patch,
 } from '@nestjs/common';
 import { BanzzackService } from './banzzack.service';
-import { CreateBanzzackDto } from './dto/create-banzzack.dto';
-import { UpdateBanzzackDto } from './dto/update-banzzack.dto';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { Role } from '../../identity/user/decorators/role.decorator';
+import { UserRole } from '@prisma/client';
+import { AuthGuard } from '@nestjs/passport';
+import { RoleGuard } from '../../identity/auth/guards/role.guard';
+import { CreateControllerBanzzackDto } from './dto/create-controller-banzzack.dto';
+import { Request } from 'express';
 
 @Controller('banzzack')
 @ApiTags('banzzack')
 export class BanzzackController {
   constructor(private readonly banzzackService: BanzzackService) {}
 
-  @Post()
-  create(@Body() createBanzzackDto: CreateBanzzackDto) {
-    return this.banzzackService.create(createBanzzackDto);
+  @Post(':zariId')
+  @Role(UserRole.BYEOL)
+  @UseGuards(AuthGuard('jwt'), RoleGuard)
+  @ApiBearerAuth()
+  @ApiCreatedResponse({
+    type: CreateControllerBanzzackDto,
+    description: '반짝이가 생성되었습니다.',
+  })
+  async create(
+    @Req() req: Request,
+    @Param('zariId', ParseIntPipe) zariId: number,
+    @Body() createControllerBanzzackDto: CreateControllerBanzzackDto,
+  ) {
+    const { id: userId } = req['user'];
+    return await this.banzzackService.create(
+      userId,
+      zariId,
+      createControllerBanzzackDto,
+    );
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.banzzackService.findOne(+id);
+  async findById(@Param('id', ParseIntPipe) id: number) {
+    return await this.banzzackService.findById(id);
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: number,
-    @Body() updateBanzzackDto: UpdateBanzzackDto,
+  @Role(UserRole.BYEOL)
+  @UseGuards(AuthGuard('jwt'), RoleGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse({ description: '성공적으로 수정되었습니다.' })
+  async update(
+    @Req() req: Request,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() createControllerBanzzackDto: CreateControllerBanzzackDto,
   ) {
-    return this.banzzackService.update(+id, updateBanzzackDto);
+    const { byeolId } = req['user'];
+    return await this.banzzackService.update(
+      id,
+      byeolId,
+      createControllerBanzzackDto,
+    );
   }
 
   @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.banzzackService.remove(+id);
+  @Role(UserRole.BYEOL)
+  @UseGuards(AuthGuard('jwt'), RoleGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse({ description: '성공적으로 삭제되었습니다.' })
+  async delete(@Req() req: Request, @Param('id', ParseIntPipe) id: number) {
+    const { byeolId } = req['user'];
+    return await this.banzzackService.delete(id, byeolId);
   }
 }

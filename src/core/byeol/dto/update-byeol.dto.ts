@@ -1,4 +1,4 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateByeolDto } from './create-byeol.dto';
+import { PickType } from '@nestjs/swagger';
+import { ByeolEntity } from '../entities/byeol.entity';
 
-export class UpdateByeolDto extends PartialType(CreateByeolDto) {}
+export class UpdateByeolDto extends PickType(ByeolEntity, ['name'] as const) {}

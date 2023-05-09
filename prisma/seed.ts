@@ -1,71 +1,162 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, UserRole } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const zodiacs = [
-    { symbol: '물병', startMonthDay: '01-20', endMonthDay: '02-18' },
-    { symbol: '물고기', startMonthDay: '02-19', endMonthDay: '03-20' },
-    { symbol: '양', startMonthDay: '03-21', endMonthDay: '04-19' },
-    { symbol: '황소', startMonthDay: '04-20', endMonthDay: '05-20' },
-    { symbol: '쌍둥이', startMonthDay: '05-21', endMonthDay: '06-20' },
-    { symbol: '게', startMonthDay: '06-21', endMonthDay: '07-22' },
-    { symbol: '사자', startMonthDay: '07-23', endMonthDay: '08-22' },
-    { symbol: '처녀', startMonthDay: '08-23', endMonthDay: '09-22' },
-    { symbol: '천칭', startMonthDay: '09-23', endMonthDay: '10-22' },
-    { symbol: '전갈', startMonthDay: '10-23', endMonthDay: '11-21' },
-    { symbol: '사수', startMonthDay: '11-22', endMonthDay: '12-21' },
-    { symbol: '염소', startMonthDay: '12-22', endMonthDay: '01-19' },
+  await ConstellationCreate();
+  await userByeolZariCreate();
+  await bannzzackCreate();
+}
+
+// execute the main function
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    // close Prisma Client at the end
+    await prisma.$disconnect();
+  });
+
+function getRandomElement(arr) {
+  const randomIndex = Math.floor(Math.random() * arr.length);
+  return arr[randomIndex];
+}
+
+async function ConstellationCreate() {
+  const Constellations = [
+    {
+      IAU: 'Ari',
+      name: '양',
+      startMonthDay: '03-21',
+      endMonthDay: '04-19',
+      constellationCount: 15,
+      element: '불',
+      rulingPlanet: '화성',
+    },
+    {
+      IAU: 'Tau',
+      name: '황소',
+      startMonthDay: '04-20',
+      endMonthDay: '05-20',
+      constellationCount: 13,
+      element: '흙',
+      rulingPlanet: '금성',
+    },
+    {
+      IAU: 'Gem',
+      name: '쌍둥이',
+      startMonthDay: '05-21',
+      endMonthDay: '06-20',
+      constellationCount: 14,
+      element: '공기',
+      rulingPlanet: '수성',
+    },
+    {
+      IAU: 'Cnc',
+      name: '게',
+      startMonthDay: '06-21',
+      endMonthDay: '07-22',
+      constellationCount: 7,
+      element: '물',
+      rulingPlanet: '달',
+    },
+    {
+      IAU: 'Leo',
+      name: '사자',
+      startMonthDay: '07-23',
+      endMonthDay: '08-22',
+      constellationCount: 12,
+      element: '불',
+      rulingPlanet: '태양',
+    },
+    {
+      IAU: 'Vir',
+      name: '처녀',
+      startMonthDay: '08-23',
+      endMonthDay: '09-22',
+      constellationCount: 15,
+      element: '흙',
+      rulingPlanet: '수성',
+    },
+    {
+      IAU: 'Lib',
+      name: '천칭',
+      startMonthDay: '09-23',
+      endMonthDay: '10-22',
+      constellationCount: 10,
+      element: '공기',
+      rulingPlanet: '금성',
+    },
+    {
+      IAU: 'Sco',
+      name: '전갈',
+      startMonthDay: '10-23',
+      endMonthDay: '11-21',
+      constellationCount: 12,
+      element: '물',
+      rulingPlanet: '명왕성',
+    },
+    {
+      IAU: 'Sgr',
+      name: '궁수',
+      startMonthDay: '11-22',
+      endMonthDay: '12-21',
+      constellationCount: 15,
+      element: '불',
+      rulingPlanet: '목성',
+    },
+    {
+      IAU: 'Cap',
+      name: '염소',
+      startMonthDay: '12-22',
+      endMonthDay: '01-19',
+      constellationCount: 11,
+      element: '흙',
+      rulingPlanet: '토성',
+    },
+    {
+      IAU: 'Aqr',
+      name: '물병',
+      startMonthDay: '01-20',
+      endMonthDay: '02-18',
+      constellationCount: 11,
+      element: '공기',
+      rulingPlanet: '천왕성',
+    },
+    {
+      IAU: 'Psc',
+      name: '물고기',
+      startMonthDay: '02-19',
+      endMonthDay: '03-20',
+      constellationCount: 12,
+      element: '물',
+      rulingPlanet: '해왕성',
+    },
   ];
 
-  for (const zodiac of zodiacs) {
-    await prisma.zodiac.upsert({
-      where: { symbol: zodiac.symbol },
+  for (const constellation of Constellations) {
+    await prisma.constellation.upsert({
+      where: { name: constellation.name },
       update: {},
       create: {
-        symbol: zodiac.symbol,
-        startMonthDay: zodiac.startMonthDay,
-        endMonthDay: zodiac.endMonthDay,
+        IAU: constellation.IAU,
+        name: constellation.name,
+        constellationCount: constellation.constellationCount,
+        startMonth: +constellation.startMonthDay.split('-')[0],
+        startDay: +constellation.startMonthDay.split('-')[1],
+        endMonth: +constellation.endMonthDay.split('-')[0],
+        endDay: +constellation.endMonthDay.split('-')[1],
       },
     });
   }
 
-  const byeols = [
-    { name: '나루토', provider: 'none', providerId: 1 },
-    { name: '사스케', provider: 'none', providerId: 2 },
-    { name: '루피', provider: 'none', providerId: 3 },
-    { name: '조로', provider: 'none', providerId: 4 },
-    { name: '이치고', provider: 'none', providerId: 5 },
-    { name: '나미', provider: 'none', providerId: 6 },
-    { name: '루시', provider: 'none', providerId: 7 },
-    { name: '에르자', provider: 'none', providerId: 8 },
-    { name: '아스카', provider: 'none', providerId: 9 },
-    { name: '신지', provider: 'none', providerId: 10 },
-    { name: '쿄스케', provider: 'none', providerId: 11 },
-    { name: '토루', provider: 'none', providerId: 12 },
-    { name: '유키', provider: 'none', providerId: 13 },
-    { name: '미코토', provider: 'none', providerId: 14 },
-    { name: '라키', provider: 'none', providerId: 15 },
-    { name: '레이', provider: 'none', providerId: 16 },
-    { name: '미사토', provider: 'none', providerId: 17 },
-    { name: '타카시', provider: 'none', providerId: 18 },
-    { name: '히카루', provider: 'none', providerId: 19 },
-    { name: '하루히', provider: 'none', providerId: 20 },
-    { name: '리코', provider: 'none', providerId: 21 },
-    { name: '카이', provider: 'none', providerId: 22 },
-    { name: '시온', provider: 'none', providerId: 23 },
-    { name: '유우', provider: 'none', providerId: 24 },
-    { name: '마사', provider: 'none', providerId: 25 },
-    { name: '코가', provider: 'none', providerId: 26 },
-    { name: '레나', provider: 'none', providerId: 27 },
-    { name: '아야', provider: 'none', providerId: 28 },
-    { name: '마키', provider: 'none', providerId: 29 },
-    { name: '켄타', provider: 'none', providerId: 30 },
-    { name: '카논', provider: 'none', providerId: 31 },
-    { name: '미치루', provider: 'none', providerId: 32 },
-    { name: '유이', provider: 'none', providerId: 33 },
-    { name: '유리코', provider: 'none', providerId: 34 },
-  ];
+  return Promise.resolve();
+}
+
+async function userByeolZariCreate() {
+  const constellationList = await prisma.constellation.findMany();
 
   for (const byeol of byeols) {
     const userInstance = await prisma.user.upsert({
@@ -82,32 +173,70 @@ async function main() {
       },
     });
 
-    const byeolInstance = await prisma.byeol.upsert({
+    const constellation = getRandomElement(constellationList);
+    await prisma.byeol.upsert({
       where: { name: byeol.name },
       update: {},
       create: {
         name: byeol.name,
+        users: {
+          connect: { id: userInstance.id },
+        },
+        zaris: {
+          create: {
+            constellationIAU: constellation.IAU,
+          },
+        },
       },
     });
 
     await prisma.user.update({
       where: { id: userInstance.id },
-      data: { byeolId: byeolInstance.id },
+      data: { role: UserRole.BYEOL },
     });
   }
 
-  const byeolList = await prisma.byeol.findMany();
-  for (const byeol of byeolList) {
-    const zodiacList = await prisma.zodiac.findMany();
-    const randomZodiacId = getRandomElement(zodiacList).id;
-    await prisma.zari.create({
-      data: {
-        byeolId: byeol.id,
-        zodiacId: randomZodiacId,
-      },
-    });
-  }
+  return Promise.resolve();
+}
 
+const byeols = [
+  { name: '나루토', provider: 'local', providerId: 1 },
+  { name: '사스케', provider: 'local', providerId: 2 },
+  { name: '루피', provider: 'local', providerId: 3 },
+  { name: '조로', provider: 'local', providerId: 4 },
+  { name: '이치고', provider: 'local', providerId: 5 },
+  { name: '나미', provider: 'local', providerId: 6 },
+  { name: '루시', provider: 'local', providerId: 7 },
+  { name: '에르자', provider: 'local', providerId: 8 },
+  { name: '아스카', provider: 'local', providerId: 9 },
+  { name: '신지', provider: 'local', providerId: 10 },
+  { name: '쿄스케', provider: 'local', providerId: 11 },
+  { name: '토루', provider: 'local', providerId: 12 },
+  { name: '유키', provider: 'local', providerId: 13 },
+  { name: '미코토', provider: 'local', providerId: 14 },
+  { name: '라키', provider: 'local', providerId: 15 },
+  { name: '레이', provider: 'local', providerId: 16 },
+  { name: '미사토', provider: 'local', providerId: 17 },
+  { name: '타카시', provider: 'local', providerId: 18 },
+  { name: '히카루', provider: 'local', providerId: 19 },
+  { name: '하루히', provider: 'local', providerId: 20 },
+  { name: '리코', provider: 'local', providerId: 21 },
+  { name: '카이', provider: 'local', providerId: 22 },
+  { name: '시온', provider: 'local', providerId: 23 },
+  { name: '유우', provider: 'local', providerId: 24 },
+  { name: '마사', provider: 'local', providerId: 25 },
+  { name: '코가', provider: 'local', providerId: 26 },
+  { name: '레나', provider: 'local', providerId: 27 },
+  { name: '아야', provider: 'local', providerId: 28 },
+  { name: '마키', provider: 'local', providerId: 29 },
+  { name: '켄타', provider: 'local', providerId: 30 },
+  { name: '카논', provider: 'local', providerId: 31 },
+  { name: '미치루', provider: 'local', providerId: 32 },
+  { name: '유이', provider: 'local', providerId: 33 },
+  { name: '유리코', provider: 'local', providerId: 34 },
+];
+
+async function bannzzackCreate() {
   const contents = [
     '안녕하세요! 오늘 하루도 행복한 일만 가득하시길 바랍니다.',
     '즐거운 하루 되세요! 그 어떤 일도 당신을 좌절시키지 못하도록 힘내세요.',
@@ -180,36 +309,34 @@ async function main() {
     '오늘 하루도 무사히 마무리하시길 바랍니다.',
   ];
 
+  const byeolList = await prisma.byeol.findMany();
   for (const content of contents) {
-    const byeolList = await prisma.byeol.findMany();
     const randomByeol = getRandomElement(byeolList);
-
-    const zariList = await prisma.zari.findMany();
-    const randomZariId = getRandomElement(zariList).id;
-
-    await prisma.banzzack.create({
-      data: {
-        content: content,
-        byeolId: randomByeol.id,
-        byeolName: randomByeol.name,
-        zariId: randomZariId,
+    const zari = await prisma.zari.findMany({
+      include: {
+        banzzacks: true,
+        constellation: true,
       },
     });
+    const randomZari = getRandomElement(zari);
+
+    if (randomZari.banzzacks.length >= randomZari.constellationCount) {
+      continue;
+    }
+    try {
+      await prisma.banzzack.create({
+        data: {
+          content: content,
+          byeolId: randomByeol.id,
+          byeolName: randomByeol.name,
+          zariId: randomZari.id,
+          starNumber: randomZari.banzzacks.length + 1,
+        },
+      });
+    } catch (error) {
+      console.log('-----------------------------------------------------');
+      console.log(randomZari.id);
+      console.log(randomZari.banzzacks.length);
+    }
   }
-}
-
-// execute the main function
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    // close Prisma Client at the end
-    await prisma.$disconnect();
-  });
-
-function getRandomElement(arr) {
-  const randomIndex = Math.floor(Math.random() * arr.length);
-  return arr[randomIndex];
 }

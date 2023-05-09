@@ -1,38 +1,58 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { PrismaService } from 'nestjs-prisma';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class UserService {
   constructor(private prismaService: PrismaService) {}
 
-  async create(createUserDto: CreateUserDto) {
-    const user = await this.prismaService.user.create({
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    return this.prismaService.user.create({
       data: createUserDto,
     });
-
-    delete user.json;
-
-    return user;
   }
 
-  async findUniqueOrThrow(provider_providerId: any) {
-    const user = await this.prismaService.user.findUniqueOrThrow({
-      where: { provider_providerId },
+  async findUniqueProviderIdsOrThrow(providerIds: {
+    providerId: number;
+    provider: string;
+  }) {
+    return this.prismaService.user.findUniqueOrThrow({
+      where: { provider_providerId: providerIds },
     });
-
-    delete user.json;
-
-    return user;
   }
 
-  async findUnique(provider_providerId: any) {
-    const user = await this.prismaService.user.findUnique({
-      where: { provider_providerId },
+  async findUniqueProviderIds(providerIds: {
+    providerId: number;
+    provider: string;
+  }) {
+    return this.prismaService.user.findUnique({
+      where: { provider_providerId: providerIds },
     });
+  }
 
-    delete user.json;
+  async findById(userId): Promise<User> {
+    return this.prismaService.user.findUnique({
+      where: { id: userId },
+    });
+  }
 
-    return user;
+  async findByIdOrThrow(userId: any) {
+    return this.prismaService.user.findUniqueOrThrow({
+      where: { id: userId },
+    });
+  }
+
+  async findOrCreateUser(createUserDto: CreateUserDto) {
+    return this.prismaService.user.upsert({
+      where: {
+        provider_providerId: {
+          providerId: createUserDto.providerId,
+          provider: createUserDto.provider,
+        },
+      },
+      update: {},
+      create: createUserDto,
+    });
   }
 }

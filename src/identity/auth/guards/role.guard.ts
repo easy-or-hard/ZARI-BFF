@@ -32,7 +32,7 @@ export class RoleGuard implements CanActivate {
 
     if (role !== user.role) {
       throw new UnauthorizedException(
-        `롤이 맞지 않습니다. API가 요구한 롤: ${role} 사용자 롤: ${user.role}`,
+        `권한이 맞지 않습니다. API가 요구한 권한: ${role} 사용자 권한: ${user.role}`,
       );
     }
     return true;

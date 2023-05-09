@@ -26,6 +26,14 @@ import { AUTH } from '../../lib/consts';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @Post('/jwt')
+  async jwtAuth(@Req() req: Request) {
+    const user = req['user'];
+    return { ...user, message: 'jwt 토큰 검증 성공' };
+  }
+
   @Get('/github')
   @UseGuards(AuthGuard('github'))
   async githubAuth() {
@@ -34,8 +42,8 @@ export class AuthController {
 
   @Get('/github/callback')
   @UseGuards(AuthGuard('github'))
-  async githubAuthCallback(@Req() req, @Res() res: Response) {
-    const user = await this.authService.authenticateUserWithoutSignUp(req.user);
+  async githubAuthCallback(@Req() req: Request, @Res() res: Response) {
+    const user = req['user'];
     const jwt = await this.authService.jwtSign(user);
 
     res.cookie(AUTH.JWT.ACCESS_TOKEN, jwt.access_token, {
@@ -43,12 +51,24 @@ export class AuthController {
       secure: true,
     });
     res.setHeader('Authorization', `Bearer ${jwt.access_token}`);
-    res.send(jwt.access_token);
+    res.send({ ...user, access_token: jwt.access_token });
   }
 
   @Post('/local/sign-up')
-  async signUp(@Body() createUserDto: CreateUserDto) {
-    return await this.authService.signUp(createUserDto);
+  async signUp(@Res() res: Response, @Body() createUserDto: CreateUserDto) {
+    const user = await this.authService.create(createUserDto);
+    const jwt = await this.authService.jwtSign(user);
+
+    res.cookie(AUTH.JWT.ACCESS_TOKEN, jwt.access_token, {
+      httpOnly: true,
+      secure: true,
+    });
+    res.setHeader('Authorization', `Bearer ${jwt.access_token}`);
+    res.send({
+      ...user,
+      access_token: jwt.access_token,
+      message: '회원가입 성공',
+    });
   }
 
   @Post('/local/sign-in')
@@ -67,8 +87,8 @@ export class AuthController {
   })
   @ApiCreatedResponse({ description: 'User signed in successfully' })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
-  async signIn(@Req() req, @Res() res: Response) {
-    const user = req.user;
+  async signIn(@Req() req: Request, @Res() res: Response) {
+    const user = req['user'];
     const jwt = await this.authService.jwtSign(user);
 
     res.cookie(AUTH.JWT.ACCESS_TOKEN, jwt.access_token, {
@@ -76,14 +96,11 @@ export class AuthController {
       secure: true,
     });
     res.setHeader('Authorization', `Bearer ${jwt.access_token}`);
-    res.send({ ...user, access_token: jwt.access_token });
-  }
-
-  @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
-  @Post('/jwt')
-  async jwtAuth(@Req() req) {
-    return { ...req.user, message: '토큰 검증 성공' };
+    res.send({
+      ...user,
+      access_token: jwt.access_token,
+      message: '사인인 성공',
+    });
   }
 
   @Get('/sign-out')

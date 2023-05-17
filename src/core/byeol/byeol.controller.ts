@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -60,7 +61,9 @@ export class ByeolController {
     @Body() createByeolRequestDto: CreateByeolRequestDto,
   ) {
     const { id: userId, byeolId } = req['user'];
-    await this.byeolService.hasFoundByIdThenThrow(byeolId);
+    if (byeolId) {
+      throw new BadRequestException('이미 별이 있어요');
+    }
     await this.byeolService.create(userId, createByeolRequestDto);
     return { statusCode: 201, message: '별을 만들었어요' };
   }

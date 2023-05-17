@@ -7,6 +7,7 @@ import { PrismaModule } from 'nestjs-prisma';
 import { AuthModule } from './identity/auth/auth.module';
 import { UserModule } from './identity/user/user.module';
 import { ConfigModule } from '@nestjs/config';
+import { GatewayModule } from './gateway/gateway.module';
 
 @Module({
   imports: [
@@ -22,7 +23,9 @@ import { ConfigModule } from '@nestjs/config';
     ConstellationModule,
     ByeolModule,
     ZariModule,
+    UserModule,
     BanzzackModule,
+    GatewayModule,
   ],
   controllers: [],
   providers: [],

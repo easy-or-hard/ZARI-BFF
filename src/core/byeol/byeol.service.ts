@@ -1,27 +1,37 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { UpdateByeolDto } from './dto/update-byeol.dto';
+import { UpdateByeolRequestDto } from './dto/request/update-byeol.request.dto';
 import { PrismaService } from 'nestjs-prisma';
-import { UserRole } from '@prisma/client';
-import { CreateByeolDto } from './dto/create-byeol.dto';
+import { CreateByeolRequestDto } from './dto/request/create-byeol.request.dto';
+import { ConstellationService } from '../Constellation/constellation.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ByeolService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly constellationService: ConstellationService,
+  ) {}
 
-  async create(userId, createByeolDto: CreateByeolDto) {
-    const { name, constellationIAU } = createByeolDto;
+  async create(userId, createByeolDto: CreateByeolRequestDto) {
+    const { name, birthMonth, birthDay } = createByeolDto;
 
-    return this.prisma.$transaction(async (tx) => {
-      const createdByeol = tx.byeol.create({
+    const constellation = await this.constellationService.findByDateOrThrow({
+      birthMonth,
+      birthDay,
+    });
+
+    try {
+      await this.prisma.byeol.create({
         data: {
           name: name,
           zaris: {
             create: {
-              constellationIAU,
+              constellationIAU: constellation.IAU,
             },
           },
           users: {
@@ -29,37 +39,61 @@ export class ByeolService {
           },
         },
       });
+    } catch (e) {
+      if (!(e instanceof Prisma.PrismaClientKnownRequestError)) {
+        throw e;
+      }
 
-      const updatedUser = tx.user.update({
-        where: { id: userId },
-        data: { role: UserRole.BYEOL },
-      });
-
-      return Promise.all([createdByeol, updatedUser]);
-    });
+      switch (e.code) {
+        case 'P2002':
+          throw new ConflictException('누군가 사용중이에요');
+        case 'P2016':
+          throw new NotFoundException('유저를 찾을 수 없어요');
+        default:
+          throw e;
+      }
+    }
   }
 
   async findById(id: number) {
-    return this.findByUniqueOrThrow({ id });
+    return this.findByUnique({ id });
   }
 
   async findByName(name: string) {
-    return this.findByUniqueOrThrow({ name });
+    return this.findByUnique({ name });
   }
 
-  async findByUniqueOrThrow(where: { id?: number; name?: string }) {
-    const byeol = await this.prisma.byeol.findUniqueOrThrow({
+  async findByUnique(where: { id?: number; name?: string }) {
+    return this.prisma.byeol.findUnique({
       where,
       include: {
         zaris: true,
       },
     });
+  }
 
-    if (!byeol.isActivate) {
-      throw new NotFoundException('비활성화 된 별입니다.');
-    }
+  async findByIdOrThrow(id: number) {
+    return this.prisma.byeol.findUniqueOrThrow({
+      where: { id },
+      include: { zaris: true },
+    });
+  }
 
-    return byeol;
+  async findByNameOrThrow(name: string) {
+    return this.findByUniqueOrThrow({ name });
+  }
+
+  async findByUniqueOrThrow(where: { id?: number; name?: string }) {
+    return this.prisma.byeol.findUniqueOrThrow({
+      where,
+      include: {
+        zaris: {
+          include: {
+            banzzacks: true,
+          },
+        },
+      },
+    });
   }
 
   /**
@@ -67,90 +101,73 @@ export class ByeolService {
    * @param id
    * @param updateByeolDto
    */
-  async update(id: number, updateByeolDto: UpdateByeolDto) {
+  async update(id: number, updateByeolDto: UpdateByeolRequestDto) {
     return this.prisma.byeol.update({
       where: { id },
       data: updateByeolDto,
     });
   }
 
-  /**
-   * 별의 이름이 사용가능하면 트루를 반환합니다.
-   * 사용 불가능하면 예외를 발생시킵니다.
-   * @param name
-   */
-  async isNameAvailable(name: string) {
-    const byeol = await this.prisma.byeol.findUnique({
-      where: { name },
-    });
+  async hasFoundByIdThenThrow(byeolId: number) {
+    const byeol = await this.findById(byeolId);
 
     if (byeol) {
-      throw new ConflictException('이미 존재하는 별 이름입니다.');
+      throw new BadRequestException('이미 별이 있어요');
     }
+  }
 
-    return true;
+  async hasNotFoundByIdThenThrow(byeolId: number) {
+    const byeol = await this.findById(byeolId);
+
+    if (byeol) {
+      throw new NotFoundException('별이 없어요');
+    }
+  }
+
+  /**
+   * 별의 이름이 사용 불가능하면 예외를 발생시킵니다.
+   * @param name
+   */
+  async canNotUseNameThenThrow(name: string) {
+    const byeol = await this.findByName(name);
+
+    if (byeol) {
+      throw new ConflictException('누군가 사용중이에요');
+    }
   }
 
   /**
    * 별을 비활성화 합니다.
-   * 유저의 롤은 별 레벨에서 유저 레벨로
-   * 별은 활성화 상태를 펄스로
    * @param id
    */
-  async deActivate(id: number) {
-    return this.prisma.$transaction(async (tx) => {
-      const updatedByeol = await tx.byeol.update({
-        where: { id },
-        data: {
-          isActivate: false,
-        },
-        include: {
-          zaris: true,
-          users: true,
-        },
-      });
-
-      const roleUpdatedUser = tx.user.updateMany({
-        where: { byeolId: id },
-        data: { role: UserRole.USER },
-      });
-
-      tx.zari.updateMany({
-        where: { byeolId: id },
-        data: {
-          isPublic: false,
-        },
-      });
-
-      return Promise.all([updatedByeol, roleUpdatedUser]);
+  async deactivate(id: number) {
+    const updatedByeol = this.prisma.byeol.update({
+      where: { id },
+      data: {
+        isActivate: false,
+      },
     });
+
+    const updatedZari = this.prisma.zari.updateMany({
+      where: { byeolId: id },
+      data: {
+        isPublic: false,
+      },
+    });
+
+    await this.prisma.$transaction([updatedByeol, updatedZari]);
   }
 
   /**
    * 비활성화 된 별과 유저를 활성화 합니다.
-   * 유저는 롤을 별로
-   * 별은 활성화 상태를 트루로
    * @param id
    */
   async activate(id: number) {
-    return this.prisma.$transaction(async (tx) => {
-      const updatedByeol = await tx.byeol.update({
-        where: { id },
-        data: {
-          isActivate: true,
-        },
-        include: {
-          zaris: true,
-          users: true,
-        },
-      });
-
-      const roleUpdatedUser = tx.user.updateMany({
-        where: { byeolId: id },
-        data: { role: UserRole.BYEOL },
-      });
-
-      return Promise.all([updatedByeol, roleUpdatedUser]);
+    this.prisma.byeol.update({
+      where: { id },
+      data: {
+        isActivate: true,
+      },
     });
   }
 }

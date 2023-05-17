@@ -1,5 +1,7 @@
 import { Banzzack } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsNumber } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class BanzzackEntity implements Banzzack {
   @ApiProperty({ example: 1, type: Number })
@@ -16,6 +18,8 @@ export class BanzzackEntity implements Banzzack {
   byeolName: string;
   @ApiProperty({ example: 14, type: Number, description: '소속 별의 갯수' })
   starNumber: number;
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
   @ApiProperty({ example: 1, type: Number })
   zariId: number;
   @ApiProperty({ example: '2021-01-01T00:00:00.000Z', type: Date })

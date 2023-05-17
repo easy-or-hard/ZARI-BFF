@@ -5,27 +5,16 @@ import { PrismaService } from 'nestjs-prisma';
 export class ZariService {
   constructor(private prisma: PrismaService) {}
 
-  async findById(id: number) {
+  async findByIdOrThrow(id: number) {
     return this.prisma.zari.findFirstOrThrow({
       where: { id, isPublic: true },
       include: {
-        banzzacks: {
-          select: {
-            id: true,
-            starNumber: true,
-            byeol: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
+        banzzacks: true,
       },
     });
   }
 
-  async findMyZari(userId: number) {
+  async findMyZaris(userId: number) {
     const foundUser = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
       include: {

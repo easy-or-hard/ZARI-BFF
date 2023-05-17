@@ -3,6 +3,8 @@ import {
   Controller,
   Get,
   Post,
+  Query,
+  Redirect,
   Req,
   Res,
   UseGuards,
@@ -17,18 +19,25 @@ import {
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { AUTH } from '../../lib/consts';
+import { ConfigService } from '@nestjs/config';
+import { User } from '@prisma/client';
+import { UserService } from '../user/user.service';
 
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly authService: AuthService,
+    private readonly userService: UserService,
+  ) {}
 
+  @Post('/jwt')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  @Post('/jwt')
   async jwtAuth(@Req() req: Request) {
     const user = req['user'];
     return { ...user, message: 'jwt 토큰 검증 성공' };
@@ -40,34 +49,45 @@ export class AuthController {
     // do not need implementation
   }
 
+  @Get('/github/socket')
+  @Redirect()
+  async githubSocketAuth(@Query('state') state: string) {
+    const clientId = this.configService.getOrThrow('GITHUB_CLIENT_ID');
+    const scope = 'user:email';
+    const baseUrl = 'https://github.com/login/oauth/authorize';
+
+    return {
+      url: `${baseUrl}?client_id=${clientId}&scope=${scope}&state=${state}`,
+    };
+  }
+
   @Get('/github/callback')
   @UseGuards(AuthGuard('github'))
   async githubAuthCallback(@Req() req: Request, @Res() res: Response) {
-    const user = req['user'];
+    const user: User = req['user'];
     const jwt = await this.authService.jwtSign(user);
 
-    res.cookie(AUTH.JWT.ACCESS_TOKEN, jwt.access_token, {
-      httpOnly: true,
-      secure: true,
+    this.setAuthCookie(res, jwt.access_token);
+    res.send({
+      statusCode: 200,
+      message: '사인인 성공',
+      data: { ...user, access_token: jwt.access_token },
     });
-    res.setHeader('Authorization', `Bearer ${jwt.access_token}`);
-    res.send({ ...user, access_token: jwt.access_token });
   }
 
   @Post('/local/sign-up')
   async signUp(@Res() res: Response, @Body() createUserDto: CreateUserDto) {
-    const user = await this.authService.create(createUserDto);
+    const user = await this.userService.findOrCreateUser(createUserDto);
     const jwt = await this.authService.jwtSign(user);
 
-    res.cookie(AUTH.JWT.ACCESS_TOKEN, jwt.access_token, {
-      httpOnly: true,
-      secure: true,
-    });
-    res.setHeader('Authorization', `Bearer ${jwt.access_token}`);
+    this.setAuthCookie(res, jwt.access_token);
     res.send({
-      ...user,
-      access_token: jwt.access_token,
+      statusCode: 201,
       message: '회원가입 성공',
+      data: {
+        ...user,
+        access_token: jwt.access_token,
+      },
     });
   }
 
@@ -79,8 +99,8 @@ export class AuthController {
     schema: {
       type: 'object',
       properties: {
-        providerId: { type: 'number', example: 1 },
-        provider: { type: 'string', example: 'none' },
+        providerId: { type: 'number', example: 7 },
+        provider: { type: 'string', example: 'local' },
       },
       required: ['username', 'password'],
     },
@@ -91,21 +111,27 @@ export class AuthController {
     const user = req['user'];
     const jwt = await this.authService.jwtSign(user);
 
-    res.cookie(AUTH.JWT.ACCESS_TOKEN, jwt.access_token, {
-      httpOnly: true,
-      secure: true,
-    });
-    res.setHeader('Authorization', `Bearer ${jwt.access_token}`);
+    this.setAuthCookie(res, jwt.access_token);
     res.send({
-      ...user,
-      access_token: jwt.access_token,
+      statusCode: 200,
       message: '사인인 성공',
+      data: { ...user, access_token: jwt.access_token },
     });
   }
 
   @Get('/sign-out')
   async signOut(@Res() res: Response) {
     res.clearCookie(AUTH.JWT.ACCESS_TOKEN);
-    res.send({ message: '사인아웃 성공' });
+    res.send({ statusCode: 200, message: '사인아웃 성공' });
+  }
+
+  private setAuthCookie(res: Response, accessToken: string) {
+    res.cookie(AUTH.JWT.ACCESS_TOKEN, accessToken, {
+      domain: this.configService.get('COOKIE_DOMAIN'),
+      httpOnly: this.configService.get('COOKIE_HTTP_ONLY'),
+      secure: this.configService.get('COOKIE_SECURE'),
+      sameSite: this.configService.get('COOKIE_SAME_SITE'),
+    });
+    res.setHeader('Authorization', `Bearer ${accessToken}`);
   }
 }

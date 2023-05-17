@@ -1,73 +1,43 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { PrismaService } from 'nestjs-prisma';
-import { CreateControllerBanzzackDto } from './dto/create-controller-banzzack.dto';
+import { CreateBanzzackRequestDto } from './dto/request/create-banzzack.request.dto';
+import { CreateBanzzackServiceDto } from './dto/service/create-banzzack.service.dto';
 
 @Injectable()
 export class BanzzackService {
   constructor(private prisma: PrismaService) {}
 
-  async create(
-    userId: number,
-    zariId: number,
-    createControllerBanzzackDto: CreateControllerBanzzackDto,
-  ) {
-    const awaitUser = this.prisma.user.findUniqueOrThrow({
-      where: { id: userId },
-      include: {
-        byeol: true,
-      },
-    });
-
-    const awaitZari = this.prisma.zari.findUniqueOrThrow({
-      where: { id: zariId },
-      include: {
-        banzzacks: true,
-        constellation: true,
-      },
-    });
-
-    const [foundUser, foundZari] = await Promise.all([awaitUser, awaitZari]);
-    if (
-      foundZari.banzzacks.length >= foundZari.constellation.constellationCount
-    ) {
-      throw new BadRequestException(
-        '기록할 수 있는 반짝이의 수를 초과하였습니다.',
-      );
+  async create(createBanzzackServiceDto: CreateBanzzackServiceDto) {
+    try {
+      return await this.prisma.banzzack.create({
+        data: createBanzzackServiceDto,
+      });
+    } catch (e) {
+      if (e instanceof PrismaClientKnownRequestError && e.code === 'P2002') {
+        throw new ConflictException('이미 존재하는 반짝이입니다.');
+      }
+      throw e;
     }
-
-    return this.prisma.banzzack.create({
-      data: {
-        content: createControllerBanzzackDto.content,
-        byeolId: foundUser.byeol.id,
-        byeolName: foundUser.byeol.name,
-        starNumber: foundZari.banzzacks.length + 1,
-        zariId,
-      },
-    });
   }
 
   async delete(id: number, byeolId: number) {
     const foundBanzzack = await this.prisma.banzzack.findUniqueOrThrow({
       where: { id },
-      include: {
-        zari: {
-          include: {
-            byeol: true,
-          },
-        },
-      },
+      include: { zari: { select: { byeolId: true } } },
     });
 
-    if (
-      byeolId === foundBanzzack.zari.byeolId ||
-      byeolId === foundBanzzack.byeolId
-    ) {
+    if (foundBanzzack.zari.byeolId === byeolId) {
       return this.prisma.banzzack.delete({
         where: { id },
       });
     }
 
-    throw new BadRequestException('작성자가 아닙니다. 삭제할 수 없습니다.');
+    throw new BadRequestException('별자리의 주인만 삭제할 수 있어요');
   }
 
   async findById(id: number) {
@@ -77,12 +47,15 @@ export class BanzzackService {
   }
 
   async update(
-    id: number,
-    byeolId: any,
-    createControllerBanzzackDto: CreateControllerBanzzackDto,
+    byeolId: number,
+    createControllerBanzzackDto: CreateBanzzackRequestDto,
   ) {
+    const condition = {
+      zariId: createControllerBanzzackDto.zariId,
+      starNumber: createControllerBanzzackDto.starNumber,
+    };
     const foundBanzzack = await this.prisma.banzzack.findUniqueOrThrow({
-      where: { id },
+      where: { zariId_starNumber: condition },
       include: {
         zari: {
           include: {
@@ -92,15 +65,15 @@ export class BanzzackService {
       },
     });
 
-    if (byeolId === foundBanzzack.byeolId) {
-      return this.prisma.banzzack.update({
-        where: { id },
-        data: {
-          content: createControllerBanzzackDto.content,
-        },
-      });
+    if (byeolId !== foundBanzzack.byeolId) {
+      throw new BadRequestException('직접붙인 별만 수정 가능해요');
     }
 
-    throw new BadRequestException('작성자가 아닙니다. 수정할 수 없습니다.');
+    this.prisma.banzzack.update({
+      where: { zariId_starNumber: condition },
+      data: {
+        content: createControllerBanzzackDto.content,
+      },
+    });
   }
 }

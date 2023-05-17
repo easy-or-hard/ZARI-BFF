@@ -1,122 +1,128 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  UseGuards,
-  Req,
+  Get,
+  Param,
   ParseIntPipe,
-  Res,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+  UseInterceptors,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { ByeolService } from './byeol.service';
-import { CreateByeolDto } from './dto/create-byeol.dto';
-import { UpdateByeolDto } from './dto/update-byeol.dto';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiConflictResponse,
   ApiCreatedResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
-  ApiProperty,
+  ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { ByeolEntity } from './entities/byeol.entity';
 import { AuthGuard } from '@nestjs/passport';
-import { Request, Response } from 'express';
-import { UserRole } from '@prisma/client';
-import { Role } from '../../identity/user/decorators/role.decorator';
-import { RoleGuard } from '../../identity/auth/guards/role.guard';
-import { AUTH } from '../../lib/consts';
-import { AuthService } from '../../identity/auth/auth.service';
-import { UserService } from '../../identity/user/user.service';
+import { Request } from 'express';
+import { NameValidationPipe } from './pipes/name-validation.pipe';
+import { FileInterceptor } from '@nestjs/platform-express';
+import CreateByeolResponseDto from './dto/response/create-byeol.response.dto';
+import { ReadByeolOkResponseDto } from './dto/response/read-byeol-ok-response.dto';
+import { UpdateByeolRequestDto } from './dto/request/update-byeol.request.dto';
+import UpdateByeolResponseDto from './dto/response/update-byeol.response.dto';
+import { CreateByeolRequestDto } from './dto/request/create-byeol.request.dto';
+import { NotOkResponseDto } from '../../lib/common/dto/response.dto';
 
 @Controller('byeol')
 @ApiTags('byeol')
 export class ByeolController {
-  constructor(
-    private readonly byeolService: ByeolService,
-    private readonly authService: AuthService,
-    private readonly userService: UserService,
-  ) {}
+  constructor(private readonly byeolService: ByeolService) {}
 
   /**
    * 별을 생성합니다.
    * @param req
-   * @param res
-   * @param createByeolDto
+   * @param createByeolRequestDto
    */
   @Post()
-  @Role(UserRole.USER)
-  @UseGuards(AuthGuard('jwt'), RoleGuard)
+  @UseGuards(AuthGuard('jwt'))
+  @UseInterceptors(FileInterceptor(''))
+  @UsePipes(new ValidationPipe({ transform: true }))
   @ApiBearerAuth()
+  @ApiOperation({ summary: '별 만들기' })
   @ApiCreatedResponse({
-    description: '로그인 한 상태의 유저의 별을 생성합니다.',
-    type: CreateByeolDto,
+    description: '별을 만들었어요',
+    type: CreateByeolResponseDto,
   })
   async create(
     @Req() req: Request,
-    @Res() res: Response,
-    @Body() createByeolDto: CreateByeolDto,
+    @Body() createByeolRequestDto: CreateByeolRequestDto,
   ) {
-    const { id: userId } = req['user'];
-
-    const [, roleUpdatedUser] = await this.byeolService.create(
-      userId,
-      createByeolDto,
-    );
-    const jwt = await this.authService.jwtSign(roleUpdatedUser);
-
-    res.cookie(AUTH.JWT.ACCESS_TOKEN, jwt.access_token, {
-      httpOnly: true,
-      secure: true,
-    });
-    res.setHeader('Authorization', `Bearer ${jwt.access_token}`);
-    res.send({ ...roleUpdatedUser, access_token: jwt.access_token });
+    const { id: userId, byeolId } = req['user'];
+    await this.byeolService.hasFoundByIdThenThrow(byeolId);
+    await this.byeolService.create(userId, createByeolRequestDto);
+    return { statusCode: 201, message: '별을 만들었어요' };
   }
 
   /**
    * 나의 별 정보를 가져옵니다.
    * @param req
    */
-  @Get()
-  @Role(UserRole.BYEOL)
-  @UseGuards(AuthGuard('jwt'), RoleGuard)
+  @Get('/me')
+  @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
+  @ApiOperation({ summary: '내 별 찾기' })
   @ApiOkResponse({
-    description: '나의 별 정보를 가져옵니다.',
-    type: ByeolEntity,
+    description: '내 별을 찾았어요',
+    type: ReadByeolOkResponseDto,
   })
-  async findMyByeol(@Req() req: Request) {
+  @ApiNotFoundResponse({ description: '별이 없어요' })
+  async findMe(
+    @Req() req: Request,
+  ): Promise<ReadByeolOkResponseDto | NotOkResponseDto> {
     const { byeolId } = req['user'];
-    return await this.byeolService.findById(byeolId);
+    if (!byeolId) {
+      return { statusCode: 404, message: '별이 없어요' } as NotOkResponseDto;
+    }
+    const byeol = await this.byeolService.findByIdOrThrow(byeolId);
+    return {
+      statusCode: 200,
+      message: '내 별을 찾았어요',
+      data: byeol,
+    } as ReadByeolOkResponseDto;
+  }
+
+  /**
+   * 별의 이름으로 하나의 정보를 가져옵니다.
+   * @param name
+   */
+  @Get('/name/:name')
+  @ApiOperation({ summary: '별 하나 찾기' })
+  @ApiOkResponse({
+    description: '별을 하나 찾았어요',
+    type: ReadByeolOkResponseDto,
+  })
+  @ApiNotFoundResponse({ description: '별이 없어요' })
+  async findByName(@Param('name') name: string) {
+    const byeol = await this.byeolService.findByNameOrThrow(name);
+    return { statusCode: 200, message: '별을 하나 찾았어요', data: byeol };
   }
 
   /**
    * 별의 아이디로 하나의 정보를 가져옵니다.
    * @param byeolId
    */
-  @Get('/id/:id')
+  @Get(':id')
+  @ApiOperation({ summary: '별 하나 찾기' })
   @ApiOkResponse({
-    description: '별의 ID로 하나의 별 정보를 가져옵니다.',
-    type: ByeolEntity,
+    description: '별을 하나 찾았어요',
+    type: ReadByeolOkResponseDto,
   })
+  @ApiNotFoundResponse({ description: '별이 없어요' })
   async findById(@Param('id', ParseIntPipe) byeolId: number) {
-    return await this.byeolService.findById(byeolId);
-  }
-
-  /**
-   * 별의 이름으로 하나의 정보를 가져옵니다.
-   * @param byeolName
-   */
-  @Get('/name/:name')
-  @ApiOkResponse({
-    description: '별의 이름으로 하나의 별 정보를 가져옵니다.',
-    type: ByeolEntity,
-  })
-  async findByName(@Param('name') byeolName: string) {
-    return await this.byeolService.findByName(byeolName);
+    const byeol = await this.byeolService.findByIdOrThrow(byeolId);
+    return { statusCode: 200, message: '별을 하나 찾았어요', data: byeol };
   }
 
   /**
@@ -124,18 +130,22 @@ export class ByeolController {
    * @param name
    */
   @Get('is-name-available/:name')
-  @ApiProperty({
-    type: Boolean,
-    description: '별의 이름으로 사용가능하면 응답코드 200을 반환합니다.',
+  @ApiOperation({ summary: '별 이름 확인하기' })
+  @ApiOkResponse({ description: '사용 가능해요' })
+  @ApiBadRequestResponse({
+    description: `
+    두 가지 케이스 중 하나가 나옵니다
+  1. 두글자 이상 적어주세요
+  2. 특수문자/공백은 사용할 수 없어요
+  `,
   })
-  @ApiOkResponse({
-    description: '별의 이름으로 사용가능합니다.',
-  })
-  @ApiConflictResponse({
-    description: '별의 이름으로 사용할 수 없습니다.',
-  })
-  async isNameAvailable(@Param('name') name: string) {
-    return await this.byeolService.isNameAvailable(name);
+  @ApiConflictResponse({ description: '누군가 사용중이에요' })
+  async isNameAvailable(@Param('name', NameValidationPipe) name: string) {
+    await this.byeolService.canNotUseNameThenThrow(name); // 사용 불가능하면 내부에서 에러를 발생시킵니다.
+    return {
+      statusCode: 200,
+      message: '사용 가능해요',
+    };
   }
 
   /**
@@ -144,76 +154,55 @@ export class ByeolController {
    * @param updateByeolDto
    */
   @Patch()
-  @Role(UserRole.BYEOL)
-  @UseGuards(AuthGuard('jwt'), RoleGuard)
+  @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
+  @ApiOperation({ summary: '별 이름 바꾸기' })
   @ApiOkResponse({
-    description: '별을 수정했습니다.',
-    type: ByeolEntity,
+    description: '별 이름을 바꿨어요',
+    type: UpdateByeolResponseDto,
   })
-  async update(@Req() req: Request, @Body() updateByeolDto: UpdateByeolDto) {
+  async update(
+    @Req() req: Request,
+    @Body() updateByeolDto: UpdateByeolRequestDto,
+  ) {
     const { byeolId } = req['user'];
-    return await this.byeolService.update(byeolId, updateByeolDto);
+    await this.byeolService.update(byeolId, updateByeolDto);
+    return { statusCode: 200, message: '별 이름을 바꿨어요' };
   }
 
   /**
    * 별을 비활성화 합니다.
    * 현재 삭제 할 수 없고 비활성화 됩니다.
    * @param req
-   * @param res
    */
   @Delete('/de-activate')
-  @Role(UserRole.BYEOL)
-  @UseGuards(AuthGuard('jwt'), RoleGuard)
+  @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
+  @ApiOperation({ summary: '내 별 비활성화 하기' })
   @ApiOkResponse({
-    description: '별과 자리를 비활성화 했습니다.',
+    description: '내 별을 비활성화 했어요',
   })
-  async deActivate(@Req() req: Request, @Res() res: Response) {
-    const { id: userId, byeolId } = req['user'];
-    await this.byeolService.deActivate(byeolId);
-    const updatedUser = await this.userService.findById(userId);
-    const jwt = await this.authService.jwtSign(updatedUser);
-
-    res.cookie(AUTH.JWT.ACCESS_TOKEN, jwt.access_token, {
-      httpOnly: true,
-      secure: true,
-    });
-    res.setHeader('Authorization', `Bearer ${jwt.access_token}`);
-    res.send({
-      ...updatedUser,
-      access_token: jwt.access_token,
-      message: '별과 자리를 비활성화 했습니다.',
-    });
+  async deActivate(@Req() req: Request) {
+    const { byeolId } = req['user'];
+    await this.byeolService.deactivate(byeolId);
+    return { statusCode: 200, message: '내 별을 비활성화 했어요' };
   }
 
   /**
    * 비활성화 된 별을 활성화 합니다.
    * @param req
-   * @param res
    */
   @Post('/activate')
-  @Role(UserRole.USER)
-  @UseGuards(AuthGuard('jwt'), RoleGuard)
+  @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
+  @ApiOperation({ summary: '내 별 활성화 하기' })
   @ApiOkResponse({
-    description: '별을 활성화 했습니다. 자리는 직접 활성화 하십시오.',
+    description: '내 별을 활성화 했어요',
   })
-  async activate(@Req() req: Request, @Res() res: Response) {
-    const { id: userId, byeolId } = req['user'];
+  async activate(@Req() req: Request) {
+    const { byeolId } = req['user'];
     await this.byeolService.activate(byeolId);
-    const updatedUser = await this.userService.findById(userId);
-    const jwt = await this.authService.jwtSign(updatedUser);
 
-    res.cookie(AUTH.JWT.ACCESS_TOKEN, jwt.access_token, {
-      httpOnly: true,
-      secure: true,
-    });
-    res.setHeader('Authorization', `Bearer ${jwt.access_token}`);
-    res.send({
-      ...updatedUser,
-      access_token: jwt.access_token,
-      message: '별과 자리를 비활성화 했습니다.',
-    });
+    return { statusCode: 200, message: '내 별을 활성화 했어요' };
   }
 }

@@ -1,14 +1,21 @@
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { PrismaClientExceptionFilter, PrismaService } from 'nestjs-prisma';
 import * as cookieParser from 'cookie-parser';
-import { TimeoutInterceptor } from './lib/interceptors/timeout.interceptor';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn', 'debug', 'log', 'verbose'],
+  });
+
+  const configService = app.get(ConfigService);
+
+  app.enableCors({
+    origin: configService.get('ZARI_FRONT_URL'), // Allow requests from Next.js server
+    credentials: true, // Allow cookies to be sent with requests
   });
 
   const config = new DocumentBuilder()
@@ -30,7 +37,8 @@ async function bootstrap() {
     .build();
 
   app.use(cookieParser());
-  app.useGlobalInterceptors(new TimeoutInterceptor());
+  // TODO, 나중에 활성화 시키기
+  // app.useGlobalInterceptors(new TimeoutInterceptor());
   app.useGlobalPipes(new ValidationPipe());
 
   const document = SwaggerModule.createDocument(app, config);
@@ -44,4 +52,5 @@ async function bootstrap() {
 
   await app.listen(3000);
 }
+
 bootstrap();

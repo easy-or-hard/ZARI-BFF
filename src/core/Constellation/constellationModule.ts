@@ -5,5 +5,6 @@ import { ConstellationController } from './constellationController';
 @Module({
   controllers: [ConstellationController],
   providers: [ConstellationService],
+  exports: [ConstellationService],
 })
 export class ConstellationModule {}

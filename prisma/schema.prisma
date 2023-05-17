@@ -7,12 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole {
-  USER
-  ADMIN
-  BYEOL
-}
-
 model Constellation {
   IAU                String   @id @db.VarChar(3)
   name               String   @unique @db.VarChar()
@@ -31,7 +25,6 @@ model User {
   provider   String
   providerId Int
   email      String?
-  role       UserRole @default(USER)
   byeol      Byeol?   @relation(fields: [byeolId], references: [id])
   byeolId    Int?
   createdAt  DateTime @default(now())

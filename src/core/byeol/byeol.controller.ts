@@ -151,6 +151,7 @@ export class ByeolController {
     return {
       statusCode: 200,
       message: '사용 가능해요',
+      data: true,
     };
   }
 

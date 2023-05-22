@@ -9,8 +9,8 @@ export class ConstellationService {
     return this.prisma.constellation.findMany();
   }
 
-  findOne(IAU: string) {
-    return this.prisma.constellation.findFirst({ where: { IAU } });
+  async findOne(IAU: string) {
+    return this.prisma.constellation.findUniqueOrThrow({ where: { IAU } });
   }
 
   /**

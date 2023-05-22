@@ -29,12 +29,13 @@ import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { NameValidationPipe } from './pipes/name-validation.pipe';
 import { FileInterceptor } from '@nestjs/platform-express';
-import CreateByeolResponseDto from './dto/response/create-byeol.response.dto';
+import CreateByeolResponseDto from './dto/response/create-byeol-response.dto';
 import { ReadByeolOkResponseDto } from './dto/response/read-byeol-ok-response.dto';
 import { UpdateByeolRequestDto } from './dto/request/update-byeol.request.dto';
-import UpdateByeolResponseDto from './dto/response/update-byeol.response.dto';
+import UpdateByeolResponseDto from './dto/response/update-byeol-response.dto';
 import { CreateByeolRequestDto } from './dto/request/create-byeol.request.dto';
 import { NotOkResponseDto } from '../../lib/common/dto/response.dto';
+import IsNameAvailableResponseDto from './dto/response/is-name-available-response.dto';
 
 @Controller('byeol')
 @ApiTags('별')

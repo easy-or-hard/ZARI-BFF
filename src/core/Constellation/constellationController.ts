@@ -5,7 +5,7 @@ import ReadConstellationResponseDto from './response/read-constellation.response
 import ReadConstellationsResponseDto from './response/read-constellations.response.dto';
 
 @Controller('constellation')
-@ApiTags('constellation')
+@ApiTags('별자리')
 export class ConstellationController {
   constructor(private readonly constellationService: ConstellationService) {}
 

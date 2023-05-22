@@ -27,7 +27,7 @@ import { User } from '@prisma/client';
 import { UserService } from '../user/user.service';
 
 @Controller('auth')
-@ApiTags('auth')
+@ApiTags('인증')
 export class AuthController {
   constructor(
     private readonly configService: ConfigService,

@@ -11,7 +11,7 @@ import { Request } from 'express';
 import ReadUserResponseDto from './dto/response/read-user-response.dto';
 
 @Controller('user')
-@ApiTags('user')
+@ApiTags('유저')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 

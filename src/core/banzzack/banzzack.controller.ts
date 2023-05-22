@@ -29,7 +29,7 @@ import CreateBanzzackResponseDto from './dto/response/create-banzzack.response.d
 import { ReadBanzzackResponseDto } from './dto/response/read-banzzack.response.dto';
 
 @Controller('banzzack')
-@ApiTags('banzzack')
+@ApiTags('반짝')
 export class BanzzackController {
   constructor(
     private readonly banzzackService: BanzzackService,

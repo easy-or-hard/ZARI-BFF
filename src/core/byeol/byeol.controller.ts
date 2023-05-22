@@ -37,7 +37,7 @@ import { CreateByeolRequestDto } from './dto/request/create-byeol.request.dto';
 import { NotOkResponseDto } from '../../lib/common/dto/response.dto';
 
 @Controller('byeol')
-@ApiTags('byeol')
+@ApiTags('별')
 export class ByeolController {
   constructor(private readonly byeolService: ByeolService) {}
 
@@ -134,7 +134,10 @@ export class ByeolController {
    */
   @Get('is-name-available/:name')
   @ApiOperation({ summary: '별 이름 확인하기' })
-  @ApiOkResponse({ description: '사용 가능해요' })
+  @ApiOkResponse({
+    type: IsNameAvailableResponseDto,
+    description: '사용 가능해요',
+  })
   @ApiBadRequestResponse({
     description: `
     두 가지 케이스 중 하나가 나옵니다

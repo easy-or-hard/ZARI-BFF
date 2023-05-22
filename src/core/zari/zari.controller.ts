@@ -18,7 +18,7 @@ import ReadZarisResponseDto from './dto/response/read-zaris.response.dto';
 import ReadZariResponseDto from './dto/response/read-zari.response.dto';
 
 @Controller('zari')
-@ApiTags('zari')
+@ApiTags('자리')
 export class ZariController {
   constructor(private readonly zariService: ZariService) {}
 

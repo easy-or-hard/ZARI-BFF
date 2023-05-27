@@ -27,4 +27,12 @@ export class SignInGateway {
   async authSuccess(state: any) {
     this.clients.get(state).emit('authSuccess', 'true');
   }
+
+  async alreadyHaveAccount(state: any) {
+    this.clients.get(state).emit('alreadyHaveAccount', 'true');
+  }
+
+  async newAccount(state: any) {
+    this.clients.get(state).emit('newAccount', 'true');
+  }
 }

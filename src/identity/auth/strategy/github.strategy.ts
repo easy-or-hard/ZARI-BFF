@@ -42,7 +42,11 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
     // 소켓 통신을 위한 상태값, UUID 가 들어있습니다.
     const { state } = req.query;
     if (state) {
-      await this.signInGateway.authSuccess(state);
+      if (user.byeolId) {
+        await this.signInGateway.alreadyHaveAccount(state);
+      } else {
+        await this.signInGateway.authSuccess(state);
+      }
     }
 
     done(null, user);

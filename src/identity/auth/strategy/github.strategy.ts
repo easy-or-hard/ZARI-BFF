@@ -45,7 +45,7 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
       if (user.byeolId) {
         await this.signInGateway.alreadyHaveAccount(state);
       } else {
-        await this.signInGateway.authSuccess(state);
+        await this.signInGateway.newAccount(state);
       }
     }
 

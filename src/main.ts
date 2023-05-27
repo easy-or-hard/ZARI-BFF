@@ -14,11 +14,7 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   app.enableCors({
-    origin: [
-      configService.get('ZARI_FRONT_URL'),
-      'https://zari-frontend.vercel.app/',
-      'http://localhost:20080',
-    ], // Allow requests from Next.js server
+    origin: [configService.get('ZARI_FRONT_URL')], // Allow requests from Next.js server
     credentials: true, // Allow cookies to be sent with requests
   });
 

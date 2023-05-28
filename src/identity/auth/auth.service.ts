@@ -12,6 +12,7 @@ export class AuthService {
   jwtSign(user: any) {
     return {
       access_token: this.jwtService.sign(user),
+      // refresh_token: // TODO, 리프레시 토큰도 발급하고 로직을 구현해야함
     };
   }
 

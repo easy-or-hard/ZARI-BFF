@@ -44,7 +44,6 @@ export class AuthController {
   @ApiOperation({ summary: 'Oauth 를 통해 가입한 유저인지 확인해요' })
   async isUser(@Req() req: Request) {
     const jwt = req.cookies[AUTH.JWT.ACCESS_TOKEN];
-    this.authService.verifyJwt(jwt);
     let result: OkResponseDto<boolean>;
     if (!jwt) {
       result = {
@@ -53,6 +52,7 @@ export class AuthController {
         data: false,
       };
     } else {
+      this.authService.verifyJwt(jwt);
       result = {
         statusCode: 200,
         message: '유저에요',

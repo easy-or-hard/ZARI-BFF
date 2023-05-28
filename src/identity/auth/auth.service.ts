@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { GithubStrategy } from './strategy/github.strategy';
 import { JwtService } from '@nestjs/jwt';
 
@@ -16,7 +16,15 @@ export class AuthService {
     };
   }
 
+  /**
+   * 검증시 실패하면 401 에러가 발생합니다.
+   * @param jwt
+   */
   verifyJwt(jwt: any) {
-    return this.jwtService.verify(jwt);
+    try {
+      return this.jwtService.verify(jwt);
+    } catch (e) {
+      throw new UnauthorizedException('Invalid token');
+    }
   }
 }

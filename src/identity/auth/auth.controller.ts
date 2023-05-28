@@ -124,11 +124,17 @@ export class AuthController {
     const jwt = this.authService.jwtSign(user);
 
     this.setAuthCookie(res, jwt.access_token);
-    res.send({
+    // 새창을 닫는 이벤트를 보내준다. 최종 응답을 보내주는 쪽에서 화면의 소멸을 책임집니다.
+    res.send(`
+<!DOCTYPE html>
+<html lang="kr">
+<head><script>window.close()</script></head>
+<body>
       statusCode: 200,
       message: '사인인 성공',
-      data: { ...user, access_token: jwt.access_token },
-    });
+      data: true,
+</body>
+    `);
   }
 
   @Post('/local/sign-up')

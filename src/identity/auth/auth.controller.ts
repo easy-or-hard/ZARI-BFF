@@ -119,9 +119,9 @@ export class AuthController {
 
   @Get('/github/callback')
   @UseGuards(AuthGuard('github'))
-  async githubAuthCallback(@Req() req: Request, @Res() res: Response) {
+  githubAuthCallback(@Req() req: Request, @Res() res: Response) {
     const user: User = req['user'];
-    const jwt = await this.authService.jwtSign(user);
+    const jwt = this.authService.jwtSign(user);
 
     this.setAuthCookie(res, jwt.access_token);
     res.send({
@@ -134,7 +134,7 @@ export class AuthController {
   @Post('/local/sign-up')
   async signUp(@Res() res: Response, @Body() createUserDto: CreateUserDto) {
     const user = await this.userService.findOrCreateUser(createUserDto);
-    const jwt = await this.authService.jwtSign(user);
+    const jwt = this.authService.jwtSign(user);
 
     this.setAuthCookie(res, jwt.access_token);
     res.send({
@@ -163,9 +163,9 @@ export class AuthController {
   })
   @ApiCreatedResponse({ description: 'User signed in successfully' })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
-  async signIn(@Req() req: Request, @Res() res: Response) {
+  signIn(@Req() req: Request, @Res() res: Response) {
     const user = req['user'];
-    const jwt = await this.authService.jwtSign(user);
+    const jwt = this.authService.jwtSign(user);
 
     this.setAuthCookie(res, jwt.access_token);
     res.send({

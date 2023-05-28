@@ -9,7 +9,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async jwtSign(user: any) {
+  jwtSign(user: any) {
     return {
       access_token: this.jwtService.sign(user),
     };

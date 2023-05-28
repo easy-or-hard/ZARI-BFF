@@ -25,6 +25,7 @@ import { AUTH } from '../../lib/consts';
 import { ConfigService } from '@nestjs/config';
 import { User } from '@prisma/client';
 import { UserService } from '../user/user.service';
+import { OkResponseDto } from '../../lib/common/dto/response.dto';
 
 @Controller('auth')
 @ApiTags('인증')
@@ -34,6 +35,61 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly userService: UserService,
   ) {}
+
+  /**
+   * ZARI 서비스를 사용하기 위해 OAuth 인증한 상태인지 확인하기 위한 메소드 입니다.
+   * @param req
+   */
+  @Get('/is-user')
+  @ApiOperation({ summary: 'Oauth 를 통해 가입한 유저인지 확인해요' })
+  async isUser(@Req() req: Request) {
+    const jwt = req.cookies[AUTH.JWT.ACCESS_TOKEN];
+    this.authService.verifyJwt(jwt);
+    let result: OkResponseDto<boolean>;
+    if (!jwt) {
+      result = {
+        statusCode: 200,
+        message: '유저가 아니에요',
+        data: false,
+      };
+    } else {
+      result = {
+        statusCode: 200,
+        message: '유저에요',
+        data: true,
+      };
+    }
+
+    return result;
+  }
+
+  /**
+   * ZARI 서비스를 사용할 수 있는 상태(별) 인지 확인합니다
+   * @param req
+   */
+  @Get('/is-byeol')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '실제 서비스를 사용할 수 있는 상태인지 확인해요' })
+  async isByeol(@Req() req: Request) {
+    const user = req['user'];
+    let result: OkResponseDto<boolean>;
+    if (!user.byeolId) {
+      result = {
+        statusCode: 200,
+        message: '별이 아니에요',
+        data: false,
+      };
+    } else {
+      result = {
+        statusCode: 200,
+        message: '별이에요',
+        data: true,
+      };
+    }
+
+    return result;
+  }
 
   @Post('/jwt')
   @UseGuards(AuthGuard('jwt'))

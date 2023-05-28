@@ -125,6 +125,12 @@ export class AuthController {
     res.send({ statusCode: 200, message: '사인아웃 성공' });
   }
 
+  /**
+   * 쿠키 발급시 보안 옵션 설정
+   * @param res
+   * @param accessToken
+   * @private
+   */
   private setAuthCookie(res: Response, accessToken: string) {
     res.cookie(AUTH.JWT.ACCESS_TOKEN, accessToken, {
       domain: this.configService.get('COOKIE_DOMAIN'),

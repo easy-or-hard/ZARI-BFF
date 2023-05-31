@@ -183,7 +183,9 @@ export class AuthController {
 
   @Get('/sign-out')
   async signOut(@Res() res: Response) {
-    res.clearCookie(AUTH.JWT.ACCESS_TOKEN, { domain: '.xiyo.dev' });
+    res.clearCookie(AUTH.JWT.ACCESS_TOKEN, {
+      domain: this.configService.get('COOKIE_DOMAIN'),
+    });
     res.send({ statusCode: 200, message: '사인아웃 성공' });
   }
 

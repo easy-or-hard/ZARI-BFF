@@ -10,6 +10,8 @@ export class ZariService {
       where: { id, isPublic: true },
       include: {
         banzzacks: true,
+        byeol: true,
+        constellation: true,
       },
     });
   }

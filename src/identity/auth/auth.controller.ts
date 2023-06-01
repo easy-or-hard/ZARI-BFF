@@ -186,7 +186,7 @@ export class AuthController {
     res.clearCookie(AUTH.JWT.ACCESS_TOKEN, {
       domain: this.configService.get('COOKIE_DOMAIN'),
     });
-    res.send({ statusCode: 200, message: '사인아웃 성공' });
+    res.send({ statusCode: 200, message: '사인아웃 성공', data: true });
   }
 
   /**

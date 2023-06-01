@@ -77,6 +77,7 @@ export class BanzzackController {
 
   @Patch()
   @UseGuards(AuthGuard('jwt'))
+  @UsePipes(new ValidationPipe({ transform: true }))
   @ApiBearerAuth()
   @ApiOperation({ summary: '반짝이 바꾸기' })
   @ApiOkResponse({ description: '반짝이를 바꿨어요' })

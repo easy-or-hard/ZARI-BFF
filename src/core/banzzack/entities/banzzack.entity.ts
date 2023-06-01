@@ -17,6 +17,8 @@ export class BanzzackEntity implements Banzzack {
   })
   byeolName: string;
   @ApiProperty({ example: 14, type: Number, description: '소속 별의 갯수' })
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
   starNumber: number;
   @Transform(({ value }) => Number(value))
   @IsNumber()

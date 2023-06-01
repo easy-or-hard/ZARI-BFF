@@ -91,6 +91,7 @@ export class BanzzackController {
     return {
       statusCode: 200,
       message: '반짝이를 바꿨어요',
+      data: true,
     };
   }
 

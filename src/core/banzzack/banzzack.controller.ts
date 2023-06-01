@@ -21,7 +21,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import { CreateBanzzackRequestDto } from './dto/request/create-banzzack.request.dto';
+import { CreatePatchBanzzackRequestDto } from './dto/request/create-patch-banzzack.request.dto';
 import { Request } from 'express';
 import { CreateBanzzackServiceDto } from './dto/service/create-banzzack.service.dto';
 import { ByeolService } from '../byeol/byeol.service';
@@ -47,14 +47,14 @@ export class BanzzackController {
   })
   async create(
     @Req() req: Request,
-    @Body() createControllerBanzzackDto: CreateBanzzackRequestDto,
+    @Body() createBanzzackRequestDto: CreatePatchBanzzackRequestDto,
   ) {
     const { byeolId } = req['user'];
     const { name: byeolName } = await this.byeolService.findById(byeolId);
     const createBanzzackServiceDto: CreateBanzzackServiceDto = {
       byeolId,
       byeolName,
-      ...createControllerBanzzackDto,
+      ...createBanzzackRequestDto,
     };
     await this.banzzackService.create(createBanzzackServiceDto);
 
@@ -83,10 +83,10 @@ export class BanzzackController {
   @ApiOkResponse({ description: '반짝이를 바꿨어요' })
   async update(
     @Req() req: Request,
-    @Body() createControllerBanzzackDto: CreateBanzzackRequestDto,
+    @Body() patchBanzzackRequestDto: CreatePatchBanzzackRequestDto,
   ) {
     const { byeolId } = req['user'];
-    await this.banzzackService.update(byeolId, createControllerBanzzackDto);
+    await this.banzzackService.update(byeolId, patchBanzzackRequestDto);
 
     return {
       statusCode: 200,

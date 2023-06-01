@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { PrismaService } from 'nestjs-prisma';
-import { CreateBanzzackRequestDto } from './dto/request/create-banzzack.request.dto';
+import { CreatePatchBanzzackRequestDto } from './dto/request/create-patch-banzzack.request.dto';
 import { CreateBanzzackServiceDto } from './dto/service/create-banzzack.service.dto';
 
 @Injectable()
@@ -48,11 +48,11 @@ export class BanzzackService {
 
   async update(
     byeolId: number,
-    createControllerBanzzackDto: CreateBanzzackRequestDto,
+    patchBanzzackRequestDto: CreatePatchBanzzackRequestDto,
   ) {
     const condition = {
-      zariId: createControllerBanzzackDto.zariId,
-      starNumber: createControllerBanzzackDto.starNumber,
+      zariId: patchBanzzackRequestDto.zariId,
+      starNumber: patchBanzzackRequestDto.starNumber,
     };
     const foundBanzzack = await this.prisma.banzzack.findUniqueOrThrow({
       where: { zariId_starNumber: condition },
@@ -72,7 +72,7 @@ export class BanzzackService {
     return this.prisma.banzzack.update({
       where: { zariId_starNumber: condition },
       data: {
-        content: createControllerBanzzackDto.content,
+        content: patchBanzzackRequestDto.content,
       },
     });
   }

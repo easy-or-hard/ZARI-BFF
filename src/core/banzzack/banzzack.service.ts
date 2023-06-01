@@ -69,7 +69,7 @@ export class BanzzackService {
       throw new BadRequestException('직접붙인 별만 수정 가능해요');
     }
 
-    this.prisma.banzzack.update({
+    return this.prisma.banzzack.update({
       where: { zariId_starNumber: condition },
       data: {
         content: createControllerBanzzackDto.content,

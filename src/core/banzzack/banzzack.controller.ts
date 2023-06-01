@@ -79,7 +79,7 @@ export class BanzzackController {
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @ApiOperation({ summary: '반짝이 바꾸기' })
-  @ApiOkResponse({ description: '반짝이를 바꿧어요' })
+  @ApiOkResponse({ description: '반짝이를 바꿨어요' })
   async update(
     @Req() req: Request,
     @Body() createControllerBanzzackDto: CreateBanzzackRequestDto,

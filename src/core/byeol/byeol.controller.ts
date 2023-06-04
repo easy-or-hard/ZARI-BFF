@@ -197,7 +197,7 @@ export class ByeolController {
     const { byeolId } = req['user'];
     // TODO, 관리자도 수정할 수 있게 나중에 변경하기
     if (byeolId !== id) {
-      throw new UnauthorizedException('소우자가 아닙니다.');
+      throw new UnauthorizedException('별 소유자가 아닙니다.');
     }
     return this.byeolService.deactivate(id);
   }
@@ -219,7 +219,7 @@ export class ByeolController {
     const { byeolId } = req['user'];
     // TODO, 관리자도 수정할 수 있게 나중에 변경하기
     if (byeolId !== id) {
-      throw new UnauthorizedException('소우자가 아닙니다.');
+      throw new UnauthorizedException('별 소유자가 아닙니다.');
     }
     return this.byeolService.activate(id);
   }

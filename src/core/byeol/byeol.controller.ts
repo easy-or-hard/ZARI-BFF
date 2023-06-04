@@ -132,7 +132,7 @@ export class ByeolController {
   @Get('is-name-available/:name')
   @ApiOperation({ summary: '별 이름 확인하기' })
   @ApiOkResponse({
-    type: IsNameAvailableResponseDto,
+    type: Boolean,
     description: '사용 가능해요',
   })
   @ApiBadRequestResponse({
@@ -143,13 +143,9 @@ export class ByeolController {
   `,
   })
   @ApiConflictResponse({ description: '누군가 사용중이에요' })
-  async isNameAvailable(@Param('name', NameValidationPipe) name: string) {
+  async nameAvailability(@Param('name', NameValidationPipe) name: string) {
     await this.byeolService.canNotUseNameThenThrow(name); // 사용 불가능하면 내부에서 에러를 발생시킵니다.
-    return {
-      statusCode: 200,
-      message: '사용 가능해요',
-      data: true,
-    };
+    return true;
   }
 
   /**

@@ -129,7 +129,7 @@ export class ByeolController {
    * 별의 이름이 중복되는지 확인합니다.
    * @param name
    */
-  @Get('is-name-available/:name')
+  @Get('/name/:name/availability')
   @ApiOperation({ summary: '별 이름 확인하기' })
   @ApiOkResponse({
     type: Boolean,

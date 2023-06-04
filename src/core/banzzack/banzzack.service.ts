@@ -61,7 +61,11 @@ export class BanzzackService {
       include: {
         zari: {
           include: {
-            byeol: true,
+            byeol: {
+              select: {
+                id: true,
+              },
+            },
           },
         },
       },

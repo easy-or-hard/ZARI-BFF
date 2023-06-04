@@ -40,9 +40,6 @@ export class BanzzackService {
     });
   }
 
-    throw new BadRequestException('별자리의 주인만 삭제할 수 있어요');
-  }
-
   async findById(id: number) {
     return this.prisma.banzzack.findUnique({
       where: { id },

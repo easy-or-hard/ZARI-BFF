@@ -25,7 +25,6 @@ import { CreatePatchBanzzackRequestDto } from './dto/request/create-patch-banzza
 import { Request } from 'express';
 import { CreateBanzzackServiceDto } from './dto/service/create-banzzack.service.dto';
 import { ByeolService } from '../byeol/byeol.service';
-import CreateBanzzackResponseDto from './dto/response/create-banzzack.response.dto';
 import { BanzzackEntity } from './entities/banzzack.entity';
 import { PatchBanzzackDto } from './dto/request/patch-banzzack.dto';
 import UpdateBanzzackDto from './dto/service/update-banzzack.dto';
@@ -44,7 +43,7 @@ export class BanzzackController {
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiOperation({ summary: '반짝이 붙이기' })
   @ApiCreatedResponse({
-    type: CreateBanzzackResponseDto,
+    type: BanzzackEntity,
     description: '반짝이를 붙였어요',
   })
   async create(
@@ -58,23 +57,17 @@ export class BanzzackController {
       byeolName,
       ...createBanzzackRequestDto,
     };
-    await this.banzzackService.create(createBanzzackServiceDto);
-
-    return {
-      statusCode: 201,
-      message: '반짝이를 붙였어요',
-    };
+    return this.banzzackService.create(createBanzzackServiceDto);
   }
 
   @Get(':id')
   @ApiOperation({ summary: '반짝이 찾기' })
   @ApiCreatedResponse({
-    type: ReadBanzzackResponseDto,
+    type: BanzzackEntity,
     description: '반짝이를 찾았어요',
   })
   async findById(@Param('id', ParseIntPipe) id: number) {
-    const banzzack = await this.banzzackService.findById(id);
-    return { statusCode: 200, message: '반짝이를 찾았어요', data: banzzack };
+    return await this.banzzackService.findById(id);
   }
 
   @Patch(':id')

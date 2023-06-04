@@ -14,7 +14,7 @@ export class BanzzackService {
 
   async create(createBanzzackServiceDto: CreateBanzzackServiceDto) {
     try {
-      return await this.prisma.banzzack.create({
+      return this.prisma.banzzack.create({
         data: createBanzzackServiceDto,
       });
     } catch (e) {

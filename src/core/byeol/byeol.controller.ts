@@ -10,7 +10,6 @@ import {
   Post,
   Req,
   UseGuards,
-  UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -49,7 +48,6 @@ export class ByeolController {
    */
   @Post()
   @UseGuards(AuthGuard('jwt'))
-  @UseInterceptors(FileInterceptor(''))
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiBearerAuth()
   @ApiOperation({ summary: '별 만들기' })

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { UpdateByeolRequestDto } from './dto/request/update-byeol.request.dto';
 import { PrismaService } from 'nestjs-prisma';
-import { CreateByeolRequestDto } from './dto/request/create-byeol.request.dto';
+import { CreateByeolDto } from './dto/service/create-byeol.dto';
 import { ConstellationService } from '../Constellation/constellation.service';
 import { Prisma } from '@prisma/client';
 
@@ -17,7 +17,7 @@ export class ByeolService {
     private readonly constellationService: ConstellationService,
   ) {}
 
-  async create(userId, createByeolDto: CreateByeolRequestDto) {
+  async create(userId, createByeolDto: CreateByeolDto) {
     const { name, birthMonth, birthDay } = createByeolDto;
 
     const constellation = await this.constellationService.findByDateOrThrow({
@@ -26,7 +26,7 @@ export class ByeolService {
     });
 
     try {
-      await this.prisma.byeol.create({
+      return this.prisma.byeol.create({
         data: {
           name: name,
           zaris: {
@@ -79,8 +79,8 @@ export class ByeolService {
     });
   }
 
-  async findByNameOrThrow(name: string) {
-    return this.findByUniqueOrThrow({ name });
+  async findUnique(name: string) {
+    return this.findByUnique({ name });
   }
 
   async findByUniqueOrThrow(where: { id?: number; name?: string }) {

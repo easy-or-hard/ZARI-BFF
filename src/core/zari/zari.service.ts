@@ -6,8 +6,8 @@ export class ZariService {
   constructor(private prisma: PrismaService) {}
 
   async findByIdOrThrow(id: number) {
-    return this.prisma.zari.findFirstOrThrow({
-      where: { id, isPublic: true },
+    return this.prisma.zari.findUnique({
+      where: { id },
       include: {
         banzzacks: true,
         byeol: true,
@@ -25,5 +25,13 @@ export class ZariService {
     });
 
     return foundUser.byeol.zaris;
+  }
+
+  async lockBanzzack(id: number, banzzackId: number) {
+    
+  }
+
+  async releaseBanzzack(id: number, banzzackId: number) {
+    
   }
 }

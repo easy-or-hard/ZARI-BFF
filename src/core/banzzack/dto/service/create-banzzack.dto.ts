@@ -1,7 +1,7 @@
 import { BanzzackEntity } from '../../entities/banzzack.entity';
 import { PickType } from '@nestjs/swagger';
 
-export class CreateBanzzackServiceDto extends PickType(BanzzackEntity, [
+export class CreateBanzzackDto extends PickType(BanzzackEntity, [
   'byeolId',
   'byeolName',
   'content',

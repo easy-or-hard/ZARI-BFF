@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Post,
   Query,
   Redirect,
@@ -13,6 +14,7 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -41,26 +43,16 @@ export class AuthController {
    * @param req
    */
   @Get('/is-user')
+  @HttpCode(200)
   @ApiOperation({ summary: 'Oauth 를 통해 가입한 유저인지 확인해요' })
   async isUser(@Req() req: Request) {
     const jwt = req.cookies[AUTH.JWT.ACCESS_TOKEN];
-    let result: OkResponseDto<boolean>;
     if (!jwt) {
-      result = {
-        statusCode: 200,
-        message: '유저가 아니에요',
-        data: false,
-      };
+      return false;
     } else {
       this.authService.verifyJwt(jwt);
-      result = {
-        statusCode: 200,
-        message: '유저에요',
-        data: true,
-      };
+      return true;
     }
-
-    return result;
   }
 
   /**
@@ -71,24 +63,10 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @ApiOperation({ summary: '실제 서비스를 사용할 수 있는 상태인지 확인해요' })
+  @ApiOkResponse({ type: Boolean, description: '불리언 값으로 별을 확인' })
   async isByeol(@Req() req: Request) {
     const user = req['user'];
-    let result: OkResponseDto<boolean>;
-    if (!user.byeolId) {
-      result = {
-        statusCode: 200,
-        message: '별이 아니에요',
-        data: false,
-      };
-    } else {
-      result = {
-        statusCode: 200,
-        message: '별이에요',
-        data: true,
-      };
-    }
-
-    return result;
+    return user.byeolId ? true : false;
   }
 
   @Post('/jwt')

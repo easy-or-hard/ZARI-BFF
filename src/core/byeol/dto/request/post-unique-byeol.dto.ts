@@ -1,11 +1,8 @@
-import { ApiProperty, PickType } from '@nestjs/swagger';
-import { ByeolEntity } from '../../entities/byeol.entity';
-import { IsNumber } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { IsNumber } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateByeolRequestDto extends PickType(ByeolEntity, [
-  'name',
-] as const) {
+export default class PostByeolDto {
   @Transform(({ value }) => Number(value))
   @IsNumber()
   @ApiProperty({ example: 1, type: Number, description: '태어난 달' })

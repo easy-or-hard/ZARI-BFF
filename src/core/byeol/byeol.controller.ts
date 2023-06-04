@@ -1,12 +1,14 @@
 import {
   BadRequestException,
   Body,
-  Controller,
+  Controller, Delete,
   Get,
+  HttpCode,
   Param,
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   Req,
   UnauthorizedException,
   UseGuards,
@@ -30,9 +32,10 @@ import { NameValidationPipe } from './pipes/name-validation.pipe';
 import CreateByeolResponseDto from './dto/response/create-byeol-response.dto';
 import { ReadByeolOkResponseDto } from './dto/response/read-byeol-ok-response.dto';
 import { UpdateByeolRequestDto } from './dto/request/update-byeol.request.dto';
-import { CreateByeolRequestDto } from './dto/request/create-byeol.request.dto';
+import { CreateByeolDto } from './dto/service/create-byeol.dto';
 import { NotOkResponseDto } from '../../lib/common/dto/response.dto';
 import { ByeolEntity } from './entities/byeol.entity';
+import PostByeolDto from './dto/request/post-unique-byeol.dto';
 
 @Controller('byeol')
 @ApiTags('별')
@@ -40,29 +43,36 @@ export class ByeolController {
   constructor(private readonly byeolService: ByeolService) {}
 
   /**
-   * 별을 생성합니다.
+   * 유니크 키로 별을 생성합니다.
+   * @param name
    * @param req
-   * @param createByeolRequestDto
+   * @param postByeolDto
    */
   @Post()
+  @HttpCode(201)
   @UseGuards(AuthGuard('jwt'))
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiBearerAuth()
-  @ApiOperation({ summary: '별 만들기' })
+  @ApiOperation({ summary: '유니크 키로 별 만들기' })
   @ApiCreatedResponse({
     description: '별을 만들었어요',
     type: CreateByeolResponseDto,
   })
-  async create(
+  async postUnique(
+    @Query('name', NameValidationPipe) name: string,
     @Req() req: Request,
-    @Body() createByeolRequestDto: CreateByeolRequestDto,
+    @Body() postByeolDto: PostByeolDto,
   ) {
     const { id: userId, byeolId } = req['user'];
     if (byeolId) {
       throw new BadRequestException('이미 별이 있어요');
     }
-    await this.byeolService.create(userId, createByeolRequestDto);
-    return { statusCode: 201, message: '별을 만들었어요' };
+
+    const createByeol: CreateByeolDto = {
+      name,
+      ...postByeolDto,
+    };
+    return this.byeolService.create(userId, createByeol);
   }
 
   /**
@@ -97,39 +107,23 @@ export class ByeolController {
    * 별의 이름으로 하나의 정보를 가져옵니다.
    * @param name
    */
-  @Get('/name/:name')
-  @ApiOperation({ summary: '별 하나 찾기' })
+  @Get()
+  @ApiOperation({ summary: '유니크 키로 별 하나 찾기' })
   @ApiOkResponse({
     description: '별을 하나 찾았어요',
-    type: ReadByeolOkResponseDto,
+    type: ByeolEntity,
   })
   @ApiNotFoundResponse({ description: '별이 없어요' })
-  async findByName(@Param('name') name: string) {
-    const byeol = await this.byeolService.findByNameOrThrow(name);
-    return { statusCode: 200, message: '별을 하나 찾았어요', data: byeol };
-  }
-
-  /**
-   * 별의 아이디로 하나의 정보를 가져옵니다.
-   * @param byeolId
-   */
-  @Get(':id')
-  @ApiOperation({ summary: '별 하나 찾기' })
-  @ApiOkResponse({
-    description: '별을 하나 찾았어요',
-    type: ReadByeolOkResponseDto,
-  })
-  @ApiNotFoundResponse({ description: '별이 없어요' })
-  async findById(@Param('id', ParseIntPipe) byeolId: number) {
-    const byeol = await this.byeolService.findByIdOrThrow(byeolId);
-    return { statusCode: 200, message: '별을 하나 찾았어요', data: byeol };
+  async findUnique(@Query('name') name: string) {
+    return this.byeolService.findUnique(name);
   }
 
   /**
    * 별의 이름이 중복되는지 확인합니다.
+   * Get(:id) 보다 먼저 위치해야합니다.
    * @param name
    */
-  @Get('/name/:name/availability')
+  @Get('/is-name-available')
   @ApiOperation({ summary: '별 이름 확인하기' })
   @ApiOkResponse({
     type: Boolean,
@@ -143,10 +137,27 @@ export class ByeolController {
   `,
   })
   @ApiConflictResponse({ description: '누군가 사용중이에요' })
-  async nameAvailability(@Param('name', NameValidationPipe) name: string) {
+  async isNameAvailable(@Query('name', NameValidationPipe) name: string) {
     await this.byeolService.canNotUseNameThenThrow(name); // 사용 불가능하면 내부에서 에러를 발생시킵니다.
     return true;
   }
+
+  /**
+   * 별의 아이디로 하나의 정보를 가져옵니다.
+   * @param byeolId
+   */
+  @Get(':id')
+  @ApiOperation({ summary: '별 하나 찾기' })
+  @ApiOkResponse({
+    description: '별을 하나 찾았어요',
+    type: ReadByeolOkResponseDto,
+  })
+  @ApiNotFoundResponse({ description: '별이 없어요' })
+  async findId(@Param('id', ParseIntPipe) byeolId: number) {
+    const byeol = await this.byeolService.findByIdOrThrow(byeolId);
+    return { statusCode: 200, message: '별을 하나 찾았어요', data: byeol };
+  }
+
 
   /**
    * 별의 이름을 수정합니다.

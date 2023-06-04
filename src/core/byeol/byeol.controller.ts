@@ -179,36 +179,45 @@ export class ByeolController {
   /**
    * 별을 비활성화 합니다.
    * 현재 삭제 할 수 없고 비활성화 됩니다.
+   * @param id
    * @param req
    */
-  @Delete('/de-activate')
+  @Patch('/:id/de-activate')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  @ApiOperation({ summary: '내 별 비활성화 하기' })
+  @ApiOperation({ summary: '별 비활성화 하기' })
   @ApiOkResponse({
-    description: '내 별을 비활성화 했어요',
+    type: Boolean,
+    description: '별을 비활성화 했어요',
   })
-  async deActivate(@Req() req: Request) {
+  async deActivate(@Param('id', ParseIntPipe) id, @Req() req: Request) {
     const { byeolId } = req['user'];
-    await this.byeolService.deactivate(byeolId);
-    return { statusCode: 200, message: '내 별을 비활성화 했어요' };
+    // TODO, 관리자도 수정할 수 있게 나중에 변경하기
+    if (byeolId !== id) {
+      throw new UnauthorizedException('소우자가 아닙니다.');
+    }
+    return this.byeolService.deactivate(id);
   }
 
   /**
    * 비활성화 된 별을 활성화 합니다.
+   * @param id
    * @param req
    */
-  @Post('/activate')
+  @Patch('/:id/activate')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  @ApiOperation({ summary: '내 별 활성화 하기' })
+  @ApiOperation({ summary: '별 활성화 하기' })
   @ApiOkResponse({
-    description: '내 별을 활성화 했어요',
+    type: Boolean,
+    description: '별을 활성화 했어요',
   })
-  async activate(@Req() req: Request) {
+  async activate(@Param('id', ParseIntPipe) id, @Req() req: Request) {
     const { byeolId } = req['user'];
-    await this.byeolService.activate(byeolId);
-
-    return { statusCode: 200, message: '내 별을 활성화 했어요' };
+    // TODO, 관리자도 수정할 수 있게 나중에 변경하기
+    if (byeolId !== id) {
+      throw new UnauthorizedException('소우자가 아닙니다.');
+    }
+    return this.byeolService.activate(id);
   }
 }

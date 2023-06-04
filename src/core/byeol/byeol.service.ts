@@ -156,6 +156,7 @@ export class ByeolService {
     });
 
     await this.prisma.$transaction([updatedByeol, updatedZari]);
+    return updatedByeol;
   }
 
   /**

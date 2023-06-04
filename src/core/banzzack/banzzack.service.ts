@@ -31,11 +31,14 @@ export class BanzzackService {
       include: { zari: { select: { byeolId: true } } },
     });
 
-    if (foundBanzzack.zari.byeolId === byeolId) {
-      return this.prisma.banzzack.delete({
-        where: { id },
-      });
+    if (foundBanzzack.zari.byeolId !== byeolId) {
+      throw new BadRequestException('별자리의 주인만 땔 수 있어요');
     }
+
+    return this.prisma.banzzack.delete({
+      where: { id },
+    });
+  }
 
     throw new BadRequestException('별자리의 주인만 삭제할 수 있어요');
   }
@@ -51,11 +54,10 @@ export class BanzzackService {
     patchBanzzackRequestDto: CreatePatchBanzzackRequestDto,
   ) {
     const condition = {
-      zariId: patchBanzzackRequestDto.zariId,
-      starNumber: patchBanzzackRequestDto.starNumber,
+      id: updateBanzzackDto.id,
     };
     const foundBanzzack = await this.prisma.banzzack.findUniqueOrThrow({
-      where: { zariId_starNumber: condition },
+      where: condition,
       include: {
         zari: {
           include: {
@@ -70,7 +72,7 @@ export class BanzzackService {
     }
 
     return this.prisma.banzzack.update({
-      where: { zariId_starNumber: condition },
+      where: condition,
       data: {
         content: patchBanzzackRequestDto.content,
       },

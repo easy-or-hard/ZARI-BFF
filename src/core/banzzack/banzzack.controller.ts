@@ -26,7 +26,9 @@ import { Request } from 'express';
 import { CreateBanzzackServiceDto } from './dto/service/create-banzzack.service.dto';
 import { ByeolService } from '../byeol/byeol.service';
 import CreateBanzzackResponseDto from './dto/response/create-banzzack.response.dto';
-import { ReadBanzzackResponseDto } from './dto/response/read-banzzack.response.dto';
+import { BanzzackEntity } from './entities/banzzack.entity';
+import { PatchBanzzackDto } from './dto/request/patch-banzzack.dto';
+import UpdateBanzzackDto from './dto/service/update-banzzack.dto';
 
 @Controller('banzzack')
 @ApiTags('반짝')
@@ -75,21 +77,21 @@ export class BanzzackController {
     return { statusCode: 200, message: '반짝이를 찾았어요', data: banzzack };
   }
 
-  @Patch()
+  @Patch(':id')
   @UseGuards(AuthGuard('jwt'))
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiBearerAuth()
   @ApiOperation({ summary: '반짝이 바꾸기' })
-  @ApiOkResponse({ description: '반짝이를 바꿨어요' })
+  @ApiOkResponse({ description: '반짝이를 바꿨어요', type: BanzzackEntity })
   async update(
+    @Param('id', ParseIntPipe) id,
     @Req() req: Request,
-    @Body() patchBanzzackRequestDto: CreatePatchBanzzackRequestDto,
+    @Body() patchBanzzackDto: PatchBanzzackDto,
   ) {
     const { byeolId } = req['user'];
-    const { id } = req.params;
     const updateBanzzackDto: UpdateBanzzackDto = {
       id: +id,
-      content: patchBanzzackRequestDto.content,
+      content: patchBanzzackDto.content,
     };
     return await this.banzzackService.update(byeolId, updateBanzzackDto);
   }

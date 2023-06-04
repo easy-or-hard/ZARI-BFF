@@ -161,6 +161,7 @@ export class ByeolService {
 
   /**
    * 비활성화 된 별과 유저를 활성화 합니다.
+   * 비활성화와 다르게 zari 의 isPublic 은 변경하지 않습니다.
    * @param id
    */
   async activate(id: number) {

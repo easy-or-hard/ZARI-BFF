@@ -5,8 +5,8 @@ import {
 } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { PrismaService } from 'nestjs-prisma';
-import { CreatePatchBanzzackRequestDto } from './dto/request/create-patch-banzzack.request.dto';
 import { CreateBanzzackServiceDto } from './dto/service/create-banzzack.service.dto';
+import UpdateBanzzackDto from './dto/service/update-banzzack.dto';
 
 @Injectable()
 export class BanzzackService {
@@ -49,10 +49,7 @@ export class BanzzackService {
     });
   }
 
-  async update(
-    byeolId: number,
-    patchBanzzackRequestDto: CreatePatchBanzzackRequestDto,
-  ) {
+  async update(byeolId: number, updateBanzzackDto: UpdateBanzzackDto) {
     const condition = {
       id: updateBanzzackDto.id,
     };
@@ -78,7 +75,7 @@ export class BanzzackService {
     return this.prisma.banzzack.update({
       where: condition,
       data: {
-        content: patchBanzzackRequestDto.content,
+        content: updateBanzzackDto.content,
       },
     });
   }

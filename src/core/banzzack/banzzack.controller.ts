@@ -86,13 +86,12 @@ export class BanzzackController {
     @Body() patchBanzzackRequestDto: CreatePatchBanzzackRequestDto,
   ) {
     const { byeolId } = req['user'];
-    await this.banzzackService.update(byeolId, patchBanzzackRequestDto);
-
-    return {
-      statusCode: 200,
-      message: '반짝이를 바꿨어요',
-      data: true,
+    const { id } = req.params;
+    const updateBanzzackDto: UpdateBanzzackDto = {
+      id: +id,
+      content: patchBanzzackRequestDto.content,
     };
+    return await this.banzzackService.update(byeolId, updateBanzzackDto);
   }
 
   @Delete(':id')

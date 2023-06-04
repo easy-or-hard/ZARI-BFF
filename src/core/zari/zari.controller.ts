@@ -14,8 +14,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import ReadZarisResponseDto from './dto/response/read-zaris.response.dto';
-import ReadZariResponseDto from './dto/response/read-zari.response.dto';
+import { ZariEntity } from './entities/zari.entity';
+import { IncludeConstellationByeolBanzzackZari } from './dto/include-banzzack-zari.dto';
 
 @Controller('zari')
 @ApiTags('자리')
@@ -28,19 +28,21 @@ export class ZariController {
   @ApiOperation({ summary: '내 자리 찾기' })
   @ApiOkResponse({
     description: '내 자리를 찾았어요',
-    type: ReadZarisResponseDto,
+    type: ZariEntity,
+    isArray: true,
   })
   async findMyZari(@Req() req: Request) {
     const { id: userId } = req['user'];
-    const zaris = await this.zariService.findMyZaris(userId);
-    return { statusCode: 200, message: '내 자리를 찾았어요', data: zaris };
+    return this.zariService.findMyZaris(userId);
   }
 
   @Get(':id')
   @ApiOperation({ summary: '자리 하나 찾기' })
-  @ApiOkResponse({ description: '자리를 찾았어요', type: ReadZariResponseDto })
+  @ApiOkResponse({
+    description: '자리를 찾았어요',
+    type: IncludeConstellationByeolBanzzackZari,
+  })
   async findById(@Param('id', ParseIntPipe) id: number) {
-    const zari = await this.zariService.findByIdOrThrow(id);
-    return { statusCode: 200, message: '자리를 찾았어요', data: zari };
+    return this.zariService.findByIdOrThrow(id);
   }
 }

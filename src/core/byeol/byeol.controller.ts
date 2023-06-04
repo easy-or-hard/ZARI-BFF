@@ -2,13 +2,13 @@ import {
   BadRequestException,
   Body,
   Controller,
-  Delete,
   Get,
   Param,
   ParseIntPipe,
   Patch,
   Post,
   Req,
+  UnauthorizedException,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -27,14 +27,12 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { NameValidationPipe } from './pipes/name-validation.pipe';
-import { FileInterceptor } from '@nestjs/platform-express';
 import CreateByeolResponseDto from './dto/response/create-byeol-response.dto';
 import { ReadByeolOkResponseDto } from './dto/response/read-byeol-ok-response.dto';
 import { UpdateByeolRequestDto } from './dto/request/update-byeol.request.dto';
-import UpdateByeolResponseDto from './dto/response/update-byeol-response.dto';
 import { CreateByeolRequestDto } from './dto/request/create-byeol.request.dto';
 import { NotOkResponseDto } from '../../lib/common/dto/response.dto';
-import IsNameAvailableResponseDto from './dto/response/is-name-available-response.dto';
+import { ByeolEntity } from './entities/byeol.entity';
 
 @Controller('byeol')
 @ApiTags('별')
@@ -156,24 +154,29 @@ export class ByeolController {
 
   /**
    * 별의 이름을 수정합니다.
+   * @param id
    * @param req
    * @param updateByeolDto
    */
-  @Patch()
+  @Patch(':id')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @ApiOperation({ summary: '별 이름 바꾸기' })
   @ApiOkResponse({
+    type: ByeolEntity,
     description: '별 이름을 바꿨어요',
-    type: UpdateByeolResponseDto,
   })
   async update(
+    @Param('id', ParseIntPipe) id: number,
     @Req() req: Request,
     @Body() updateByeolDto: UpdateByeolRequestDto,
   ) {
     const { byeolId } = req['user'];
-    await this.byeolService.update(byeolId, updateByeolDto);
-    return { statusCode: 200, message: '별 이름을 바꿨어요' };
+    // TODO, 관리자도 수정할 수 있게 나중에 변경하기
+    if (byeolId !== id) {
+      throw new UnauthorizedException('별 소유자가 아닙니다.');
+    }
+    return this.byeolService.update(id, updateByeolDto);
   }
 
   /**

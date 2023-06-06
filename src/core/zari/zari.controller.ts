@@ -20,7 +20,15 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ZariEntity } from './entities/zari.entity';
 import { IncludeConstellationByeolBanzzackZari } from './dto/include-banzzack-zari.dto';
-import { interval, map, Observable, Subject, Subscription, take } from 'rxjs';
+import {
+  BehaviorSubject,
+  interval,
+  map,
+  Observable,
+  Subject,
+  Subscription,
+  take,
+} from 'rxjs';
 
 @Controller('zari')
 @ApiTags('자리')
@@ -37,7 +45,17 @@ export class ZariController {
     let emitter = this.sseEmitters.get(id);
 
     if (!emitter) {
-      emitter = new Subject();
+      // Convert the current state of lockMap to an array
+      const lockMapArray = Array.from(this.lockMap.entries()).map(
+        ([key, value]) => {
+          const [id, starNumber] = key.split('_').map(Number);
+          return { starNumber, locked: true };
+        },
+      );
+
+      // Create a BehaviorSubject with the current state of lockMap as the initial value
+      emitter = new BehaviorSubject(lockMapArray);
+
       this.sseEmitters.set(id, emitter);
     }
 
@@ -62,7 +80,7 @@ export class ZariController {
     }
 
     // Set the lock with the user and timer
-    const timer = interval(600000)
+    const timer = interval(3000)
       .pipe(take(1))
       .subscribe(() => {
         this.lockMap.delete(key);
@@ -92,12 +110,18 @@ export class ZariController {
     @Param('id', ParseIntPipe) id: number,
     @Param('starNumber', ParseIntPipe) starNumber: number,
   ) {
+    if (starNumber === 0) {
+      return true;
+    }
+
     const { byeolId } = req['user'];
 
     // Release the banzzack
     const key = `${id}_${starNumber}`;
     const lock = this.lockMap.get(key);
-    if (lock?.user.byeolId !== byeolId) {
+    if (!lock) {
+      return true;
+    } else if (lock && lock.user.byeolId !== byeolId) {
       throw new BadRequestException('Banzzack is not locked by this user');
     }
 

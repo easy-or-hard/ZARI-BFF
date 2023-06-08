@@ -76,6 +76,34 @@ export class ByeolController {
   }
 
   /**
+   * 현재의 정보를 새로운 유니크 키로 바꿉니다.(이름 변경)
+   * @param name
+   * @param req
+   * @param patchByeolDto
+   */
+  @Patch()
+  @HttpCode(200)
+  @UseGuards(AuthGuard('jwt'))
+  @UsePipes(new ValidationPipe({ transform: true }))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '현재 별 정보를 유니크 키로 변경' })
+  @ApiCreatedResponse({
+    description: '별을 수정했어요',
+    type: CreateByeolResponseDto,
+  })
+  async patchUnique(
+    @Query('name', NameValidationPipe) name: string,
+    @Req() req: Request,
+  ) {
+    const { byeolId } = req['user'];
+
+    const updatedByeol: PatchByeolDto = {
+      name,
+    };
+    return this.byeolService.update(byeolId, updatedByeol);
+  }
+
+  /**
    * 나의 별 정보를 가져옵니다.
    * @param req
    */
@@ -158,7 +186,6 @@ export class ByeolController {
     return { statusCode: 200, message: '별을 하나 찾았어요', data: byeol };
   }
 
-
   /**
    * 별의 이름을 수정합니다.
    * @param id
@@ -176,7 +203,7 @@ export class ByeolController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Req() req: Request,
-    @Body() updateByeolDto: UpdateByeolRequestDto,
+    @Body() updateByeolDto: PatchByeolDto,
   ) {
     const { byeolId } = req['user'];
     // TODO, 관리자도 수정할 수 있게 나중에 변경하기

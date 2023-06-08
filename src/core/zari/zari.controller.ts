@@ -80,7 +80,7 @@ export class ZariController {
     }
 
     // Set the lock with the user and timer
-    const timer = interval(3000)
+    const timer = interval(60 * 10 * 1000) // 10분
       .pipe(take(1))
       .subscribe(() => {
         this.lockMap.delete(key);

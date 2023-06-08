@@ -178,6 +178,7 @@ export class AuthController {
       httpOnly: this.configService.get('COOKIE_HTTP_ONLY'),
       secure: this.configService.get('COOKIE_SECURE'),
       sameSite: this.configService.get('COOKIE_SAME_SITE'),
+      maxAge: 60 * 60 * 24 * 365 * 1000,
     });
     res.setHeader('Authorization', `Bearer ${accessToken}`);
   }

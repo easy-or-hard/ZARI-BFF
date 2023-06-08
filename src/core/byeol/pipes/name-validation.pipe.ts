@@ -9,10 +9,10 @@ export class NameValidationPipe implements PipeTransform {
   }
 
   private allowCharacterValidate(value: any) {
-    const regex = /^[가-힣a-zA-Z0-9-_]+$/;
+    const regex = /^[ㄱ-ㅎ가-힣a-zA-Z0-9-_]+$/;
     const condition = regex.test(value);
     if (!condition) {
-      throw new BadRequestException('자음/특수문자/공백은 사용할 수 없어요');
+      throw new BadRequestException('특수문자/공백은 사용할 수 없어요');
     }
   }
 

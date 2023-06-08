@@ -31,7 +31,7 @@ import { Request } from 'express';
 import { NameValidationPipe } from './pipes/name-validation.pipe';
 import CreateByeolResponseDto from './dto/response/create-byeol-response.dto';
 import { ReadByeolOkResponseDto } from './dto/response/read-byeol-ok-response.dto';
-import { UpdateByeolRequestDto } from './dto/request/update-byeol.request.dto';
+import { PatchByeolDto } from './dto/request/patch-byeol.dto';
 import { CreateByeolDto } from './dto/service/create-byeol.dto';
 import { NotOkResponseDto } from '../../lib/common/dto/response.dto';
 import { ByeolEntity } from './entities/byeol.entity';

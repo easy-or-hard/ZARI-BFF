@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { UpdateByeolRequestDto } from './dto/request/update-byeol.request.dto';
+import { PatchByeolDto } from './dto/request/patch-byeol.dto';
 import { PrismaService } from 'nestjs-prisma';
 import { CreateByeolDto } from './dto/service/create-byeol.dto';
 import { ConstellationService } from '../Constellation/constellation.service';
@@ -101,7 +101,7 @@ export class ByeolService {
    * @param id
    * @param updateByeolDto
    */
-  async update(id: number, updateByeolDto: UpdateByeolRequestDto) {
+  async update(id: number, updateByeolDto: PatchByeolDto) {
     return this.prisma.byeol.update({
       where: { id },
       data: updateByeolDto,

@@ -27,7 +27,6 @@ import { AUTH } from '../../lib/consts';
 import { ConfigService } from '@nestjs/config';
 import { User } from '@prisma/client';
 import { UserService } from '../user/user.service';
-import { OkResponseDto } from '../../lib/common/dto/response.dto';
 
 @Controller('auth')
 @ApiTags('인증')

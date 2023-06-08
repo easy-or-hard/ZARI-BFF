@@ -1,7 +1,7 @@
 import {
   BadRequestException,
   Body,
-  Controller, Delete,
+  Controller,
   Get,
   HttpCode,
   Param,

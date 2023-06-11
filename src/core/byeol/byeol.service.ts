@@ -1,14 +1,12 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
-  NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PatchByeolDto } from './dto/request/patch-byeol.dto';
 import { PrismaService } from 'nestjs-prisma';
-import { CreateByeolDto } from './dto/service/create-byeol.dto';
 import { ConstellationService } from '../Constellation/constellation.service';
-import { Prisma } from '@prisma/client';
+import { UserEntity } from '../../identity/user/entities/userEntity';
 
 @Injectable()
 export class ByeolService {
@@ -16,48 +14,6 @@ export class ByeolService {
     private readonly prisma: PrismaService,
     private readonly constellationService: ConstellationService,
   ) {}
-
-  async create(userId, createByeolDto: CreateByeolDto) {
-    const { name, birthMonth, birthDay } = createByeolDto;
-
-    const constellation = await this.constellationService.findByDateOrThrow({
-      birthMonth,
-      birthDay,
-    });
-
-    try {
-      return this.prisma.byeol.create({
-        data: {
-          name: name,
-          zaris: {
-            create: {
-              constellationIAU: constellation.IAU,
-            },
-          },
-          users: {
-            connect: { id: userId },
-          },
-        },
-      });
-    } catch (e) {
-      if (!(e instanceof Prisma.PrismaClientKnownRequestError)) {
-        throw e;
-      }
-
-      switch (e.code) {
-        case 'P2002':
-          throw new ConflictException('누군가 사용중이에요');
-        case 'P2016':
-          throw new NotFoundException('유저를 찾을 수 없어요');
-        default:
-          throw e;
-      }
-    }
-  }
-
-  async findById(id: number) {
-    return this.findByUnique({ id });
-  }
 
   async findByName(name: string) {
     return this.findByUnique({ name });
@@ -67,7 +23,12 @@ export class ByeolService {
     return this.prisma.byeol.findUnique({
       where,
       include: {
-        zaris: true,
+        zaris: {
+          select: {
+            id: true,
+            constellationIAU: true,
+          },
+        },
       },
     });
   }
@@ -75,21 +36,11 @@ export class ByeolService {
   async findByIdOrThrow(id: number) {
     return this.prisma.byeol.findUniqueOrThrow({
       where: { id },
-      include: { zaris: true },
-    });
-  }
-
-  async findUnique(name: string) {
-    return this.findByUnique({ name });
-  }
-
-  async findByUniqueOrThrow(where: { id?: number; name?: string }) {
-    return this.prisma.byeol.findUniqueOrThrow({
-      where,
       include: {
         zaris: {
-          include: {
-            banzzacks: true,
+          select: {
+            id: true,
+            constellationIAU: true,
           },
         },
       },
@@ -101,27 +52,19 @@ export class ByeolService {
    * @param id
    * @param updateByeolDto
    */
-  async update(id: number, updateByeolDto: PatchByeolDto) {
+  async update(user: UserEntity, updateByeolDto: PatchByeolDto) {
     return this.prisma.byeol.update({
-      where: { id },
+      where: { id: user.byeolId },
       data: updateByeolDto,
+      include: {
+        zaris: {
+          select: {
+            id: true,
+            constellationIAU: true,
+          },
+        },
+      },
     });
-  }
-
-  async hasFoundByIdThenThrow(byeolId: number) {
-    const byeol = await this.findById(byeolId);
-
-    if (byeol) {
-      throw new BadRequestException('이미 별이 있어요');
-    }
-  }
-
-  async hasNotFoundByIdThenThrow(byeolId: number) {
-    const byeol = await this.findById(byeolId);
-
-    if (byeol) {
-      throw new NotFoundException('별이 없어요');
-    }
   }
 
   /**
@@ -136,39 +79,58 @@ export class ByeolService {
     }
   }
 
-  /**
-   * 별을 비활성화 합니다.
-   * @param id
-   */
-  async deactivate(id: number) {
-    const updatedByeol = this.prisma.byeol.update({
-      where: { id },
-      data: {
-        isActivate: false,
+  findUniqueName(byeolName: string) {
+    return this.prisma.byeol.findUnique({
+      where: { name: byeolName },
+      include: {
+        zaris: true,
       },
     });
-
-    const updatedZari = this.prisma.zari.updateMany({
-      where: { byeolId: id },
-      data: {
-        isPublic: false,
-      },
-    });
-
-    await this.prisma.$transaction([updatedByeol, updatedZari]);
-    return updatedByeol;
   }
 
-  /**
-   * 비활성화 된 별과 유저를 활성화 합니다.
-   * 비활성화와 다르게 zari 의 isPublic 은 변경하지 않습니다.
-   * @param id
-   */
-  async activate(id: number) {
-    this.prisma.byeol.update({
-      where: { id },
-      data: {
-        isActivate: true,
+  async findUniqueNameAndConstellationIAU(
+    name: string,
+    constellationIAU: string,
+  ) {
+    const byeol = await this.prisma.byeol.findUniqueOrThrow({
+      where: { name },
+      include: {
+        zaris: {
+          where: { constellationIAU },
+          include: {
+            banzzacks: {
+              select: {
+                id: true,
+                starNumber: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return byeol;
+  }
+
+  async notOwnerThenThrow(name: string, user: UserEntity) {
+    const byeol = await this.prisma.byeol.findUnique({
+      where: { name },
+    });
+
+    if (byeol.id !== user.byeolId)
+      throw new UnauthorizedException('별의 소유자가 아닙니다.');
+  }
+
+  findBanzzacks(name, iau) {
+    return this.prisma.byeol.findUnique({
+      where: { name },
+      select: {
+        zaris: {
+          where: { constellationIAU: iau },
+          include: {
+            banzzacks: true,
+          },
+        },
       },
     });
   }

@@ -1,13 +1,25 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { GithubStrategy } from './strategy/github.strategy';
 import { JwtService } from '@nestjs/jwt';
+import { BehaviorSubject, map, Observable, Subject } from 'rxjs';
+import { UserEntity } from '../user/entities/userEntity';
+import { EventAuthDto } from './dto/event-auth.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private readonly githubStrategy: GithubStrategy,
-    private readonly jwtService: JwtService,
-  ) {}
+  constructor(private readonly jwtService: JwtService) {}
+
+  private sseEmitters: Map<string, Subject<any>> = new Map();
+
+  sse(eventAuthDto: EventAuthDto): Observable<any> {
+    const emitter = new BehaviorSubject(eventAuthDto);
+    this.sseEmitters.set(eventAuthDto.uuid, emitter);
+    return emitter.asObservable().pipe(map((data) => ({ data })));
+  }
+
+  signedIn(uuid: string, user: UserEntity) {
+    const emitter = this.sseEmitters.get(uuid);
+    emitter.next({ uuid, grade: user.byeolId ? 'BYEOL' : 'USER' });
+  }
 
   jwtSign(user: any) {
     return {

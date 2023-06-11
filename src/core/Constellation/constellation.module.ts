@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConstellationService } from './constellation.service';
-import { ConstellationController } from './constellationController';
+import { ConstellationController } from './constellation.controller';
 
 @Module({
   controllers: [ConstellationController],

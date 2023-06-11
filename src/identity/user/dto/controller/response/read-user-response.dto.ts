@@ -1,5 +1,5 @@
-import { OkResponseDto } from '../../../../lib/common/dto/response.dto';
-import { UserEntity } from '../../entities/user.entity';
+import { OkResponseDto } from '../../../../../lib/common/dto/response.dto';
+import { UserEntity } from '../../../entities/userEntity';
 import { ApiProperty } from '@nestjs/swagger';
 
 export default class ReadUserResponseDto implements OkResponseDto<UserEntity> {

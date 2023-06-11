@@ -9,7 +9,6 @@ import { JwtStrategy } from './strategy/jwt.strategy';
 import { UserModule } from '../user/user.module';
 import { LocalStrategy } from './strategy/local.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { GatewayModule } from '../../gateway/gateway.module';
 
 @Module({
   imports: [
@@ -23,15 +22,14 @@ import { GatewayModule } from '../../gateway/gateway.module';
         signOptions: { expiresIn: '365d' },
       }),
     }),
-    GatewayModule,
   ],
   controllers: [AuthController],
   providers: [
     UserService,
-    AuthService,
     GithubStrategy,
     LocalStrategy,
     JwtStrategy,
+    AuthService,
   ],
   exports: [PassportModule, AuthService, UserService],
 })

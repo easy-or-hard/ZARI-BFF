@@ -9,7 +9,7 @@ datasource db {
 
 model Constellation {
   IAU                String   @id @db.VarChar(3)
-  name               String   @unique @db.VarChar()
+  name               String   @unique @db.VarChar
   constellationCount Int
   startMonth         Int
   startDay           Int
@@ -39,9 +39,9 @@ model Byeol {
   users      User[]
   zaris      Zari[]
   banzzacks  Banzzack[]
+  isActivate Boolean    @default(true)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
-  isActivate Boolean    @default(true)
 }
 
 model Zari {
@@ -51,9 +51,11 @@ model Zari {
   byeol            Byeol         @relation(fields: [byeolId], references: [id])
   byeolId          Int
   banzzacks        Banzzack[]
+  isPublic         Boolean       @default(true)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
-  isPublic         Boolean       @default(true)
+
+  @@unique([byeolId, constellationIAU])
 }
 
 model Banzzack {
@@ -62,7 +64,7 @@ model Banzzack {
   byeol      Byeol    @relation(fields: [byeolId], references: [id])
   byeolId    Int
   byeolName  String   @db.VarChar(16) // 별의 이름이 수정되어도 작성 당시의 이름을 보관. 이 컬럼을 수정 할 때 반드시 Byeol과 Banzzack의 name 둘 다 수정 할 것
-  zari       Zari     @relation(fields: [zariId], references: [id])
+  zari       Zari     @relation(fields: [zariId], references: [id], onDelete: Cascade)
   zariId     Int
   starNumber Int
   createdAt  DateTime @default(now())

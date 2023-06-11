@@ -3,11 +3,13 @@ import {
   Controller,
   Get,
   HttpCode,
+  Param,
   Post,
   Query,
   Redirect,
   Req,
   Res,
+  Sse,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -22,11 +24,15 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { Request, Response } from 'express';
-import { CreateUserDto } from '../user/dto/create-user.dto';
+import { CreateUserDto } from '../user/dto/service/input/create-user.dto';
 import { AUTH } from '../../lib/consts';
 import { ConfigService } from '@nestjs/config';
 import { User } from '@prisma/client';
 import { UserService } from '../user/user.service';
+import { BehaviorSubject, map, Observable, Subject } from 'rxjs';
+import { v4 as uuidv4 } from 'uuid';
+import { UserEntity } from '../user/entities/userEntity';
+import { EventAuthDto } from './dto/event-auth.dto';
 
 @Controller('auth')
 @ApiTags('인증')
@@ -37,21 +43,22 @@ export class AuthController {
     private readonly userService: UserService,
   ) {}
 
-  /**
-   * ZARI 서비스를 사용하기 위해 OAuth 인증한 상태인지 확인하기 위한 메소드 입니다.
-   * @param req
-   */
-  @Get('/is-user')
-  @HttpCode(200)
-  @ApiOperation({ summary: 'Oauth 를 통해 가입한 유저인지 확인해요' })
-  async isUser(@Req() req: Request) {
+  @Sse('event')
+  sse(@Req() req: Request): Observable<any> {
     const jwt = req.cookies[AUTH.JWT.ACCESS_TOKEN];
-    if (!jwt) {
-      return false;
+    let grade;
+    if (jwt) {
+      const user = this.authService.verifyJwt(jwt);
+      grade = user.byeolId ? 'BYEOL' : 'USER';
     } else {
-      this.authService.verifyJwt(jwt);
-      return true;
+      grade = 'GUEST';
     }
+
+    const eventAuthDto: EventAuthDto = {
+      grade,
+      uuid: uuidv4(),
+    };
+    return this.authService.sse(eventAuthDto);
   }
 
   /**
@@ -59,13 +66,16 @@ export class AuthController {
    * @param req
    */
   @Get('/is-byeol')
-  @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
   @ApiOperation({ summary: '실제 서비스를 사용할 수 있는 상태인지 확인해요' })
   @ApiOkResponse({ type: Boolean, description: '불리언 값으로 별을 확인' })
   async isByeol(@Req() req: Request) {
-    const user = req['user'];
-    return user.byeolId ? true : false;
+    const jwt = req.cookies[AUTH.JWT.ACCESS_TOKEN];
+    if (!jwt) {
+      return false;
+    } else {
+      const user = this.authService.verifyJwt(jwt);
+      return !!user;
+    }
   }
 
   @Post('/jwt')
@@ -82,7 +92,7 @@ export class AuthController {
     // do not need implementation
   }
 
-  @Get('/github/socket')
+  @Get('/github/event')
   @Redirect()
   async githubSocketAuth(@Query('state') state: string) {
     const clientId = this.configService.getOrThrow('GITHUB_CLIENT_ID');

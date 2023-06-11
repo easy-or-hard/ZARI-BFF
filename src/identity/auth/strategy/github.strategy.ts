@@ -2,18 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-github2';
 import { ConfigService } from '@nestjs/config';
-import { CreateUserDto } from '../../user/dto/create-user.dto';
+import { CreateUserDto } from '../../user/dto/service/input/create-user.dto';
 import { UserService } from '../../user/user.service';
 import { Request } from 'express';
-import { SignInGateway } from '../../../gateway/sign-in.gateway';
-import { User } from '@prisma/client';
+import { UserEntity } from '../../user/entities/userEntity';
+import { AuthService } from '../auth.service';
+import { IncludeByeolUserDto } from '../../user/dto/service/output/include-byeol-user.dto';
 
 @Injectable()
 export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
   constructor(
     private readonly configService: ConfigService,
     private readonly userService: UserService,
-    private readonly signInGateway: SignInGateway,
+    private readonly authService: AuthService,
   ) {
     super({
       clientID: configService.getOrThrow('GITHUB_CLIENT_ID'),
@@ -35,20 +36,18 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
       provider: profile.provider,
       providerId: Number(profile.id),
       email: profile.emails[0]?.value,
+      displayName: profile.displayName,
     };
 
-    const user: User = await this.userService.findOrCreateUser(createUserDto);
+    const includeByeolUser: IncludeByeolUserDto =
+      await this.userService.findOrCreateUser(createUserDto);
 
-    // 소켓 통신을 위한 상태값, UUID 가 들어있습니다.
+    // SSE 를 찾기 위한 키, UUID 가 들어있습니다.
     const { state } = req.query;
     if (state) {
-      if (user.byeolId) {
-        await this.signInGateway.alreadyHaveAccount(state);
-      } else {
-        await this.signInGateway.newAccount(state);
-      }
+      this.authService.signedIn(state as string, includeByeolUser);
     }
 
-    done(null, user);
+    done(null, includeByeolUser);
   }
 }

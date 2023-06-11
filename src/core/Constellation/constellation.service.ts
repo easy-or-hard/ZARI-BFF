@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
+import { PostByeolZariByDateDto } from '../byeol/dto/request/post-byeol-zari-by-date.dto';
 
 @Injectable()
 export class ConstellationService {
@@ -19,13 +20,7 @@ export class ConstellationService {
    * @param birthMonth
    * @param birthDay
    */
-  async findByDateOrThrow({
-    birthMonth,
-    birthDay,
-  }: {
-    birthMonth: number;
-    birthDay: number;
-  }) {
+  async findByDateOrThrow({ month, day }: PostByeolZariByDateDto) {
     const constellation = await this.prisma.constellation.findFirst({
       where: {
         OR: [
@@ -33,12 +28,12 @@ export class ConstellationService {
             AND: [
               {
                 startMonth: {
-                  equals: birthMonth,
+                  equals: month,
                 },
               },
               {
                 startDay: {
-                  lte: birthDay,
+                  lte: day,
                 },
               },
             ],
@@ -47,12 +42,12 @@ export class ConstellationService {
             AND: [
               {
                 endMonth: {
-                  equals: birthMonth,
+                  equals: month,
                 },
               },
               {
                 endDay: {
-                  gte: birthDay,
+                  gte: day,
                 },
               },
             ],

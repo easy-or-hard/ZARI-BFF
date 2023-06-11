@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto } from './dto/service/input/create-user.dto';
 import { PrismaService } from 'nestjs-prisma';
+import { IncludeByeolUserDto } from './dto/service/output/include-byeol-user.dto';
 
 @Injectable()
 export class UserService {
@@ -21,16 +22,62 @@ export class UserService {
     });
   }
 
-  async findOrCreateUser(createUserDto: CreateUserDto) {
-    return this.prisma.user.upsert({
+  /**
+   * 유저의 생성은 곧 별의 생성
+   * @param createUserDto
+   */
+  async findOrCreateUser(
+    createUserDto: CreateUserDto,
+  ): Promise<IncludeByeolUserDto> {
+    const user = await this.prisma.user.findUnique({
       where: {
         provider_providerId: {
           providerId: createUserDto.providerId,
           provider: createUserDto.provider,
         },
       },
-      update: {},
-      create: createUserDto,
+      include: { byeol: true },
     });
+    if (user) {
+      return user;
+    }
+
+    let uniqueName = createUserDto.displayName;
+    while (true) {
+      const foundUser = await this.prisma.byeol.findUnique({
+        where: { name: uniqueName },
+        select: { name: true },
+      });
+
+      if (foundUser) {
+        const uniqueCode = this.generateShortCode(4);
+        uniqueName = `${createUserDto.displayName}#${uniqueCode}`;
+      } else {
+        break;
+      }
+    }
+
+    return this.prisma.user.create({
+      data: {
+        ...createUserDto,
+        byeol: {
+          create: {
+            name: uniqueName,
+          },
+        },
+      },
+      include: { byeol: true },
+    });
+  }
+
+  generateShortCode(length: number): string {
+    const characters = '0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(
+        Math.floor(Math.random() * characters.length),
+      );
+    }
+    return result;
   }
 }

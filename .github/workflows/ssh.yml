@@ -9,18 +9,18 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - name: ssh checkout
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.DEPLOY_SERVER_HOST }}
-          username: ${{ secrets.DEPLOY_SERVER_USER }}
-          password: ${{ secrets.DEPLOY_SERVER_PASSWORD }}
-          port: ${{ secrets.DEPLOY_SERVER_PORT }}
-          script: |
-            pm2 stop ZARI-BFF
-            cd ~/web/zari/ZARI-BFF
-            git pull
-            pnpm i --frozen-lockfile
-            prisma generate
-            pnpm run build
-            pm2 start ZARI-BFF
+    - name: SSH Remote Commands
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.DEPLOY_SERVER_HOST }}
+        username: ${{ secrets.DEPLOY_SERVER_USER }}
+        password: ${{ secrets.DEPLOY_SERVER_PASSWORD }}
+        port: ${{ secrets.DEPLOY_SERVER_PORT }}
+        script: |
+          pm2 stop ZARI-BFF
+          cd ~/web/zari/ZARI-BFF
+          git pull
+          pnpm i --frozen-lockfile
+          prisma generate
+          pnpm run build
+          pm2 start ZARI-BFF

@@ -17,12 +17,11 @@ jobs:
         password: ${{ secrets.DEPLOY_SERVER_PASSWORD }}
         port: ${{ secrets.DEPLOY_SERVER_PORT }}
         script: |
-          zsh -c '
-            pm2 stop ZARI-BFF
-            cd ~/web/zari/ZARI-BFF
-            git pull
-            pnpm i --frozen-lockfile
-            prisma generate
-            pnpm run build
-            pm2 start ZARI-BFF
-          '
+          source ~/.zshrc
+          pm2 stop ZARI-BFF
+          cd ~/web/zari/ZARI-BFF
+          git pull
+          pnpm i --frozen-lockfile
+          prisma generate
+          pnpm run build
+          pm2 start ZARI-BFF

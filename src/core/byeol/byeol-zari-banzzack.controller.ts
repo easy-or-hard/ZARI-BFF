@@ -137,6 +137,8 @@ export class ByeolZariBanzzackController {
       starNumber,
       lock,
     );
+
+    return { lock };
   }
 
   @Get(':starNumber')

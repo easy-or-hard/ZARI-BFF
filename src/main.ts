@@ -20,7 +20,7 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Zari API')
-    .setDescription('자리 API 설명 입니다.')
+    .setDescription('자리 API 설명 입니다. 테스트')
     .addBearerAuth() // JWT 인증 추가
     .addOAuth2({
       type: 'oauth2',

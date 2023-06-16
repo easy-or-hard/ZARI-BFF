@@ -18,7 +18,7 @@ jobs:
           port: ${{ secrets.DEPLOY_SERVER_PORT }}
           script: |
             pm2 stop ZARI-BFF
-            cd ./web/zari/ZARI-BFF
+            cd ~/web/zari/ZARI-BFF
             git pull
             pnpm i --frozen-lockfile
             prisma generate

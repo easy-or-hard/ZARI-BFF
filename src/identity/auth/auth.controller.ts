@@ -181,7 +181,7 @@ export class AuthController {
    */
   private setAuthCookie(res: Response, accessToken: string) {
     res.cookie(AUTH.JWT.ACCESS_TOKEN, accessToken, {
-      domain: this.configService.get('COOKIE_DOMAIN'),
+      domain: `.${this.configService.get('COOKIE_DOMAIN')}`,
       httpOnly: this.configService.get('COOKIE_HTTP_ONLY'),
       secure: this.configService.get('COOKIE_SECURE'),
       sameSite: this.configService.get('COOKIE_SAME_SITE'),

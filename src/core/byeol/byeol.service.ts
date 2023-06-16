@@ -5,44 +5,27 @@ import {
 } from '@nestjs/common';
 import { PatchByeolDto } from './dto/request/patch-byeol.dto';
 import { PrismaService } from 'nestjs-prisma';
-import { ConstellationService } from '../Constellation/constellation.service';
 import { UserEntity } from '../../identity/user/entities/userEntity';
 
 @Injectable()
 export class ByeolService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly constellationService: ConstellationService,
-  ) {}
-
-  async findByName(name: string) {
-    return this.findByUnique({ name });
-  }
+  constructor(private readonly prisma: PrismaService) {}
 
   async findByUnique(where: { id?: number; name?: string }) {
     return this.prisma.byeol.findUnique({
       where,
       include: {
-        zaris: {
-          select: {
-            id: true,
-            constellationIAU: true,
-          },
-        },
+        zaris: true,
       },
     });
   }
 
-  async findByIdOrThrow(id: number) {
+  async findByIdOrThrow(user: UserEntity) {
+    const id = user.byeolId;
     return this.prisma.byeol.findUniqueOrThrow({
       where: { id },
       include: {
-        zaris: {
-          select: {
-            id: true,
-            constellationIAU: true,
-          },
-        },
+        zaris: true,
       },
     });
   }
@@ -57,12 +40,7 @@ export class ByeolService {
       where: { id: user.byeolId },
       data: updateByeolDto,
       include: {
-        zaris: {
-          select: {
-            id: true,
-            constellationIAU: true,
-          },
-        },
+        zaris: true,
       },
     });
   }
@@ -72,44 +50,11 @@ export class ByeolService {
    * @param name
    */
   async canNotUseNameThenThrow(name: string) {
-    const byeol = await this.findByName(name);
+    const byeol = await this.findByUnique({ name });
 
     if (byeol) {
       throw new ConflictException('누군가 사용중이에요');
     }
-  }
-
-  findUniqueName(byeolName: string) {
-    return this.prisma.byeol.findUnique({
-      where: { name: byeolName },
-      include: {
-        zaris: true,
-      },
-    });
-  }
-
-  async findUniqueNameAndConstellationIAU(
-    name: string,
-    constellationIAU: string,
-  ) {
-    const byeol = await this.prisma.byeol.findUniqueOrThrow({
-      where: { name },
-      include: {
-        zaris: {
-          where: { constellationIAU },
-          include: {
-            banzzacks: {
-              select: {
-                id: true,
-                starNumber: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    return byeol;
   }
 
   async notOwnerThenThrow(name: string, user: UserEntity) {
@@ -119,19 +64,5 @@ export class ByeolService {
 
     if (byeol.id !== user.byeolId)
       throw new UnauthorizedException('별의 소유자가 아닙니다.');
-  }
-
-  findBanzzacks(name, iau) {
-    return this.prisma.byeol.findUnique({
-      where: { name },
-      select: {
-        zaris: {
-          where: { constellationIAU: iau },
-          include: {
-            banzzacks: true,
-          },
-        },
-      },
-    });
   }
 }

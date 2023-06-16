@@ -2,8 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  HttpCode,
-  Param,
   Post,
   Query,
   Redirect,
@@ -29,9 +27,8 @@ import { AUTH } from '../../lib/consts';
 import { ConfigService } from '@nestjs/config';
 import { User } from '@prisma/client';
 import { UserService } from '../user/user.service';
-import { BehaviorSubject, map, Observable, Subject } from 'rxjs';
+import { Observable } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
-import { UserEntity } from '../user/entities/userEntity';
 import { EventAuthDto } from './dto/event-auth.dto';
 
 @Controller('auth')

@@ -55,4 +55,28 @@ export class ZariService {
 
     return this.createByUnique(user, constellation.IAU);
   }
+
+  async findByByeolName(name: string) {
+    return this.prisma.byeol.findUnique({
+      where: { name },
+      include: { zaris: true },
+    });
+  }
+
+  async findByByeolNameAndConstellationIAU(
+    name: string,
+    constellationIAU: string,
+  ) {
+    const { zaris } = await this.prisma.byeol.findUniqueOrThrow({
+      where: { name },
+      select: {
+        zaris: { where: { constellationIAU }, select: { id: true } },
+      },
+    });
+
+    return this.prisma.zari.findUnique({
+      where: { id: zaris[0].id },
+      include: { banzzacks: true, constellation: true },
+    });
+  }
 }

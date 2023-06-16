@@ -26,8 +26,6 @@ import { Request } from 'express';
 import { NameValidationPipe } from './pipes/name-validation.pipe';
 import { PatchByeolDto } from './dto/request/patch-byeol.dto';
 import { ByeolEntity } from './entities/byeol.entity';
-import { UserEntity } from '../../identity/user/entities/userEntity';
-import GetByeolIncludeZarisDto from './dto/response/get-byeol-include-zaris.dto';
 
 @Controller('byeols')
 @ApiTags('별')
@@ -44,22 +42,22 @@ export class ByeolController {
   @ApiOperation({ summary: '내 별 찾기' })
   @ApiOkResponse({
     description: '내 별을 찾았어요',
-    type: GetByeolIncludeZarisDto,
+    type: ByeolEntity,
   })
   @ApiNotFoundResponse({ description: '별이 없어요' })
   async getMe(@Req() req: Request) {
-    const user: UserEntity = req['user'];
-    return this.byeolService.findByIdOrThrow(user.byeolId);
+    const user = req['user'];
+    return this.byeolService.findByIdOrThrow(user);
   }
 
   @Get(':name')
   @ApiOperation({ summary: '별 찾기' })
   @ApiOkResponse({
     description: '별을 찾았어요',
-    type: GetByeolIncludeZarisDto,
+    type: ByeolEntity,
   })
   getByeol(@Param('name', NameValidationPipe) name: string) {
-    return this.byeolService.findByName(name);
+    return this.byeolService.findByUnique({ name });
   }
 
   /**
@@ -83,7 +81,7 @@ export class ByeolController {
     @Req() req: Request,
     @Body() patchByeolDto: PatchByeolDto,
   ) {
-    const user: UserEntity = req['user'];
+    const user = req['user'];
 
     return this.byeolService.update(user, patchByeolDto);
   }

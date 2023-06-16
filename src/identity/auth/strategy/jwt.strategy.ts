@@ -1,11 +1,10 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from '../../user/user.service';
-import { User } from '@prisma/client';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -28,10 +27,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
   async validate(jwt, done) {
     const { id } = jwt;
-    const user: User = await this.userService.findByIdOrThrow(id);
-    if (!user.byeolId) {
-      throw new UnauthorizedException('별이 없는 유저입니다.');
-    }
+    const user = await this.userService.findByIdOrThrow(id);
     return done(null, user);
   }
 }

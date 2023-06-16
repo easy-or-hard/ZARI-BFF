@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Zari } from '@prisma/client';
+import { BanzzackEntity } from '../../banzzack/entities/banzzack.entity';
+import { ConstellationEntity } from '../../Constellation/entities/constellationEntity';
 
 export class ZariEntity implements Zari {
   @ApiProperty({ example: 1, type: Number })
@@ -16,4 +18,10 @@ export class ZariEntity implements Zari {
   updatedAt: Date;
   @ApiProperty({ example: 'Sgr', type: String })
   constellationIAU: string;
+
+  @ApiProperty({ type: BanzzackEntity, isArray: true })
+  banzzacks: BanzzackEntity[];
+
+  @ApiProperty({ type: ConstellationEntity })
+  constellation: ConstellationEntity;
 }

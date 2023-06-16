@@ -5,9 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { CreateUserDto } from '../../user/dto/service/input/create-user.dto';
 import { UserService } from '../../user/user.service';
 import { Request } from 'express';
-import { UserEntity } from '../../user/entities/userEntity';
 import { AuthService } from '../auth.service';
-import { IncludeByeolUserDto } from '../../user/dto/service/output/include-byeol-user.dto';
 
 @Injectable()
 export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
@@ -39,8 +37,9 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
       displayName: profile.displayName,
     };
 
-    const includeByeolUser: IncludeByeolUserDto =
-      await this.userService.findOrCreateUser(createUserDto);
+    const includeByeolUser = await this.userService.findOrCreateUser(
+      createUserDto,
+    );
 
     // SSE 를 찾기 위한 키, UUID 가 들어있습니다.
     const { state } = req.query;

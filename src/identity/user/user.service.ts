@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/service/input/create-user.dto';
 import { PrismaService } from 'nestjs-prisma';
-import { IncludeByeolUserDto } from './dto/service/output/include-byeol-user.dto';
 
 @Injectable()
 export class UserService {
@@ -19,6 +18,7 @@ export class UserService {
   async findByIdOrThrow(id: number) {
     return this.prisma.user.findUniqueOrThrow({
       where: { id },
+      include: { byeol: true },
     });
   }
 
@@ -26,9 +26,7 @@ export class UserService {
    * 유저의 생성은 곧 별의 생성
    * @param createUserDto
    */
-  async findOrCreateUser(
-    createUserDto: CreateUserDto,
-  ): Promise<IncludeByeolUserDto> {
+  async findOrCreateUser(createUserDto: CreateUserDto) {
     const user = await this.prisma.user.findUnique({
       where: {
         provider_providerId: {
@@ -59,7 +57,9 @@ export class UserService {
 
     return this.prisma.user.create({
       data: {
-        ...createUserDto,
+        provider: createUserDto.provider,
+        providerId: createUserDto.providerId,
+        email: createUserDto.email,
         byeol: {
           create: {
             name: uniqueName,

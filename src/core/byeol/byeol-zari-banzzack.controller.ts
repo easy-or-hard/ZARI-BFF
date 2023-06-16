@@ -23,7 +23,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ByeolService } from './byeol.service';
-import GetByeolIncludeZarisDto from './dto/response/get-byeol-include-zaris.dto';
 import { BanzzackService } from '../banzzack/banzzack.service';
 import { PostBanzzackDto } from '../banzzack/dto/request/post-banzzack.dto';
 import { UserEntity } from '../../identity/user/entities/userEntity';
@@ -140,25 +139,11 @@ export class ByeolZariBanzzackController {
     );
   }
 
-  @Get()
-  @ApiOperation({ summary: '자리의 반짝이들 가져오기' })
-  @ApiOkResponse({
-    description: '자리의 반짝이들을 가져왔어요',
-    type: GetByeolIncludeZarisDto,
-  })
-  getBanzzacks(
-    @Param('name') name: string,
-    @Param('iau') iau: string,
-    @Req() req,
-  ) {
-    return this.byeolService.findBanzzacks(name, iau);
-  }
-
   @Get(':starNumber')
   @ApiOperation({ summary: '자리의 반짝이 가져오기' })
   @ApiOkResponse({
     description: '자리의 반짝이을 가져왔어요',
-    type: GetByeolIncludeZarisDto,
+    type: BanzzackEntity,
   })
   getBanzzack(
     @Param('name') name: string,

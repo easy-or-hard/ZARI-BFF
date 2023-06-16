@@ -1,6 +1,9 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, OmitType, PickType } from '@nestjs/swagger';
 import { Byeol } from '@prisma/client';
 import { IsNumber, IsString, MaxLength } from 'class-validator';
+import { ZariEntity } from '../../zari/entities/zari.entity';
+
+class OmitZariEntity extends OmitType(ZariEntity, ['banzzacks'] as const) {}
 
 export class ByeolEntity implements Byeol {
   @IsNumber()
@@ -20,4 +23,7 @@ export class ByeolEntity implements Byeol {
 
   @ApiProperty({ example: true, type: Boolean })
   isActivate: boolean;
+
+  @ApiProperty({ type: OmitZariEntity, isArray: true })
+  zaris: OmitZariEntity[];
 }

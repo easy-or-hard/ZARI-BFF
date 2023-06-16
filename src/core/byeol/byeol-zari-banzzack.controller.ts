@@ -149,11 +149,15 @@ export class ByeolZariBanzzackController {
   })
   getBanzzack(
     @Param('name') name: string,
-    @Param('iau') iau: string,
+    @Param('constellationIAU') constellationIAU: string,
     @Param('starNumber', ParseIntPipe) starNumber: number,
     @Req() req,
   ) {
-    return this.banzzackService.findBanzzack(name, iau, starNumber);
+    return this.banzzackService.findBanzzack(
+      name,
+      constellationIAU,
+      starNumber,
+    );
   }
 
   @Post(':starNumber')
@@ -168,7 +172,7 @@ export class ByeolZariBanzzackController {
   })
   postBanzzack(
     @Param('name') name: string,
-    @Param('iau') iau: string,
+    @Param('constellationIAU') constellationIAU: string,
     @Param('starNumber', ParseIntPipe) starNumber: number,
     @Req() req,
     @Body() postBanzzackDto: PostBanzzackDto,
@@ -177,7 +181,7 @@ export class ByeolZariBanzzackController {
     return this.banzzackService.createBanzzack(
       user,
       name,
-      iau,
+      constellationIAU,
       starNumber,
       postBanzzackDto.content,
     );
@@ -194,11 +198,16 @@ export class ByeolZariBanzzackController {
   })
   deleteBanzzack(
     @Param('name') name: string,
-    @Param('iau') iau: string,
+    @Param('constellationIAU') constellationIAU: string,
     @Param('starNumber', ParseIntPipe) starNumber: number,
     @Req() req,
   ) {
     const user: UserEntity = req['user'];
-    return this.banzzackService.deleteBanzzack(user, name, iau, starNumber);
+    return this.banzzackService.deleteBanzzack(
+      user,
+      name,
+      constellationIAU,
+      starNumber,
+    );
   }
 }

@@ -72,7 +72,7 @@ export class ByeolZariBanzzackController {
   }
 
   @Sse('event')
-  @ApiOperation({ summary: '반짝이 락/릴리즈 이벤트 수신' })
+  @ApiOperation({ summary: '반짝이 락/언락 이벤트 수신' })
   sse(
     @Param('name') byeolName: string,
     @Param('constellationIAU') constellationIAU: string,

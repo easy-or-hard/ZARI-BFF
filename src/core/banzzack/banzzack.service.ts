@@ -187,7 +187,7 @@ export class BanzzackService {
       },
     });
 
-    this.prisma.banzzack.create({
+    return this.prisma.banzzack.create({
       data: {
         byeolId: user.byeolId,
         byeolName: writerByeol.name,

@@ -32,7 +32,7 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
   ): Promise<any> {
     const createUserDto: CreateUserDto = {
       provider: profile.provider,
-      providerId: Number(profile.id),
+      providerId: profile.id + '',
       email: profile.emails[0]?.value,
       displayName: profile.displayName,
     };

@@ -16,7 +16,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(providerId: number, provider: string): Promise<any> {
+  async validate(providerId: string, provider: string): Promise<any> {
     return await this.userService.findUniqueProviderIdsOrThrow({
       providerId,
       provider,

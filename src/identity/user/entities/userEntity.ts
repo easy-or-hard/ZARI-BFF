@@ -8,14 +8,14 @@ export class UserEntity implements User {
   @ApiProperty({ example: '김별', type: String })
   provider: string;
 
-  @ApiProperty({ example: 1, type: Number })
-  providerId: number;
+  @ApiProperty({ example: '1', type: String })
+  providerId: string;
 
   @ApiProperty({ example: 1, type: Number })
   byeolId: number;
 
-  @IsEmail()
   @IsOptional()
+  @IsEmail()
   @ApiProperty({ example: 'byeol@zari.com', type: String })
   email: string;
 

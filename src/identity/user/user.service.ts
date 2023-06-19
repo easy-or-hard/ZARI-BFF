@@ -7,7 +7,7 @@ export class UserService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findUniqueProviderIdsOrThrow(provider_providerId: {
-    providerId: number;
+    providerId: string;
     provider: string;
   }) {
     return this.prisma.user.findUniqueOrThrow({
@@ -49,7 +49,7 @@ export class UserService {
 
       if (foundUser) {
         const uniqueCode = this.generateShortCode(4);
-        uniqueName = `${createUserDto.displayName}#${uniqueCode}`;
+        uniqueName = `${createUserDto.displayName}${uniqueCode}`;
       } else {
         break;
       }

@@ -23,7 +23,7 @@ model Constellation {
 model User {
   id         Int      @id @default(autoincrement())
   provider   String
-  providerId Int
+  providerId String
   email      String?
   byeol      Byeol?   @relation(fields: [byeolId], references: [id])
   byeolId    Int?

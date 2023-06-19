@@ -9,6 +9,9 @@ import { JwtStrategy } from './strategy/jwt.strategy';
 import { UserModule } from '../user/user.module';
 import { LocalStrategy } from './strategy/local.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { KakaoStrategy } from './strategy/kakao.strategy';
+import { NaverStrategy } from './strategy/naver.strategy';
+import { GoogleStrategy } from './strategy/google.strategy';
 
 @Module({
   imports: [
@@ -28,6 +31,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     UserService,
     GithubStrategy,
     LocalStrategy,
+    KakaoStrategy,
+    NaverStrategy,
+    GoogleStrategy,
     JwtStrategy,
     AuthService,
   ],

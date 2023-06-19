@@ -114,9 +114,78 @@ export class AuthController {
 <html lang="kr">
 <head><script>window.close()</script></head>
 <body>
-      statusCode: 200,
-      message: '사인인 성공',
-      data: true,
+</body>
+    `);
+  }
+
+  @Get('/kakao')
+  @UseGuards(AuthGuard('kakao'))
+  async kakaoAuth() {
+    return { message: 'kakao 로그인 성공' };
+    // do not need implementation
+  }
+
+  @Get('/kakao/callback')
+  @UseGuards(AuthGuard('kakao'))
+  kakaoAuthCallback(@Req() req: Request, @Res() res: Response) {
+    const user: User = req['user'];
+    const jwt = this.authService.jwtSign(user);
+
+    this.setAuthCookie(res, jwt.access_token);
+    // 새창을 닫는 이벤트를 보내준다. 최종 응답을 보내주는 쪽에서 화면의 소멸을 책임집니다.
+    res.send(`
+<!DOCTYPE html>
+<html lang="kr">
+<head><script>window.close()</script></head>
+<body>
+</body>
+    `);
+  }
+
+  @Get('/naver')
+  @UseGuards(AuthGuard('naver'))
+  async naverAuth() {
+    return { message: 'naver 로그인 성공' };
+    // do not need implementation
+  }
+
+  @Get('/naver/callback')
+  @UseGuards(AuthGuard('naver'))
+  naverAuthCallback(@Req() req: Request, @Res() res: Response) {
+    const user: User = req['user'];
+    const jwt = this.authService.jwtSign(user);
+
+    this.setAuthCookie(res, jwt.access_token);
+    // 새창을 닫는 이벤트를 보내준다. 최종 응답을 보내주는 쪽에서 화면의 소멸을 책임집니다.
+    res.send(`
+<!DOCTYPE html>
+<html lang="kr">
+<head><script>window.close()</script></head>
+<body>
+</body>
+    `);
+  }
+
+  @Get('/google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth() {
+    return { message: 'google 로그인 성공' };
+    // do not need implementation
+  }
+
+  @Get('/google/callback')
+  @UseGuards(AuthGuard('google'))
+  googleAuthCallback(@Req() req: Request, @Res() res: Response) {
+    const user: User = req['user'];
+    const jwt = this.authService.jwtSign(user);
+
+    this.setAuthCookie(res, jwt.access_token);
+    // 새창을 닫는 이벤트를 보내준다. 최종 응답을 보내주는 쪽에서 화면의 소멸을 책임집니다.
+    res.send(`
+<!DOCTYPE html>
+<html lang="kr">
+<head><script>window.close()</script></head>
+<body>
 </body>
     `);
   }

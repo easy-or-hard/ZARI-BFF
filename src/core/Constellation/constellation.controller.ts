@@ -3,7 +3,7 @@ import { ConstellationService } from './constellation.service';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ConstellationEntity } from './entities/constellationEntity';
 
-@Controller('constellation')
+@Controller('constellations')
 @ApiTags('별자리')
 export class ConstellationController {
   constructor(private readonly constellationService: ConstellationService) {}

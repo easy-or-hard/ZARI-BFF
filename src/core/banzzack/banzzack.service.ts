@@ -5,6 +5,7 @@ import UpdateBanzzackDto from './dto/service/update-banzzack.dto';
 import UpdateUniqueBanzzackDto from './dto/service/update-unique-banzzack.dto';
 import DeleteUniqueBanzzackDto from './dto/service/delete-unique-banzzack.dto';
 import { UserEntity } from '../../identity/user/entities/userEntity';
+import { BanzzackEntity } from './entities/banzzack.entity';
 
 @Injectable()
 export class BanzzackService {
@@ -133,6 +134,29 @@ export class BanzzackService {
   }
 
   async findBanzzack(byeolName: string, iau: string, starNumber: number) {
+    if (!byeolName || !iau || !starNumber) {
+      const defaultBanzzack: BanzzackEntity = {
+        id: 0,
+        content:
+          '안녕하세요!\n' +
+          '자리에 함께 할 수 있어서 기뻐요~\n' +
+          '\n' +
+          '친구와 함께 반짝이를 붙이면서 나의 자리를 완성해보세요!\n' +
+          '별자리가 완성되면 특별한 이벤트도 볼 수 있어요!\n' +
+          '우측 상단의 링크 아이콘을 눌러 링크를 복사하세요!\n' +
+          '\n' +
+          '이 반짝이는 자동으로 삭제돼요 :D\n' +
+          'Have a good talk!',
+        byeolId: 0,
+        byeolName: 'ZARI admin',
+        zariId: 0,
+        starNumber: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      return defaultBanzzack;
+    }
     const byeol = await this.prisma.byeol.findUnique({
       where: { name: byeolName },
       select: {
